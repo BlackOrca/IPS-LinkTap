@@ -7,6 +7,9 @@ declare(strict_types=1);
 		const ModulToMqtt = "{043EA491-0325-4ADD-8FC2-A30C8EEB4D3F}";
 		const MqttToModul = "{7F7632D9-FA40-4F38-8DEA-C83CD4325A32}";
 
+		const Battery = "Battery";
+		const GatewayId = "GatewayId";
+
 		public function Create()
 		{
 			//Never delete this line!
@@ -16,8 +19,11 @@ declare(strict_types=1);
 			//$this->RegisterPropertyString('UplinkReplyTopic', '');
 			$this->RegisterPropertyString('DownlinkTopic', '');
 			//$this->RegisterPropertyString('DownlinkReplyTopic', '');
-
 			$this->RegisterPropertyString('LinkTapId', '');
+
+
+			$this->RegisterVariableBoolean(self::Battery, $this->Translate(self::Battery), '~Battery.100', 10);
+			$this->RegisterVariableString(self::GatewayId, $this->Translate(self::GatewayId), '', 1000);
 
 			$this->ConnectParent(self::MqttParent);
 		}
@@ -79,5 +85,45 @@ declare(strict_types=1);
 			$this->SendDebug('ReceiveData', $JSONString, 0);
 
 			$data = json_decode($JSONString, true);
+
+			$battery = $data['dev_stat']['battery'];
+			$gatewayId = $data['gw_id'];
+
+
+			$this->SetValue(self::Battery, $battery);
+			$this->SetValue(self::GatewayId, $gatewayId);
 		}
 	}
+
+
+
+	/*
+ 	{
+		"cmd":3,
+		"gw_id":"gatewayid",
+		"dev_stat":{
+			"dev_id":"taplinkid",
+			"plan_mode":1,
+			"plan_sn":0,
+			"is_rf_linked":true,
+			"is_flm_plugin":true,
+			"is_fall":false,
+			"is_broken":false,
+			"is_cutoff":false,
+			"is_leak":false,
+			"is_clog":false,
+			"signal":83,
+			"battery":90,
+			"child_lock":0,
+			"is_manual_mode":false,
+			"is_watering":false,
+			"is_final":true,
+			"total_duration":0,
+			"remain_duration":0,
+			"speed":0.00,
+			"volume":30.30,
+			"volume_limit":0.00,
+			"failsafe_duration":0
+		}
+	}
+	*/
