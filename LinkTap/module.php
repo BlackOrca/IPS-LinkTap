@@ -22,7 +22,7 @@ declare(strict_types=1);
 			$this->RegisterPropertyString('LinkTapId', '');
 
 
-			$this->RegisterVariableBoolean(self::Battery, $this->Translate(self::Battery), '~Battery.100', 10);
+			$this->RegisterVariableInteger(self::Battery, $this->Translate(self::Battery), '~Battery.100', 10);
 			$this->RegisterVariableString(self::GatewayId, $this->Translate(self::GatewayId), '', 1000);
 
 			$this->ConnectParent(self::MqttParent);
