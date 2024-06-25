@@ -52,7 +52,7 @@ declare(strict_types=1);
 			$this->SendDebug('DownlinkTopic', $this->ReadPropertyString('DownlinkTopic'), 0);
 			//$this->SendDebug('DownlinkReplyTopic', $this->ReadPropertyString('DownlinkReplyTopic'), 0);
 			
-			$filterResult = preg_quote('"Topic":"' . $this->ReadPropertyString('UplinkTopic') . '/' . $this->ReadPropertyString('LinkTapId') . '/');	
+			$filterResult = preg_quote('"Topic":"' . $this->ReadPropertyString('UplinkTopic') . '/' . $this->ReadPropertyString('LinkTapId'));	
 			$this->SendDebug('ReceiveDataFilter', '.*' . $filterResult . '.*', 0);
 			$this->SetReceiveDataFilter('.*' . $filterResult . '.*');
 
