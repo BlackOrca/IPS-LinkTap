@@ -1,0 +1,19 @@
+{
+    "id": "{ADB398FA-1FAE-B3D2-2617-4F7EDBB57764}",
+    "name": "LinkTap",
+    "type": 3,
+    "vendor": "LinkTap",
+    "aliases": [
+        "TapLinker",
+        "ValveLinker"
+    ],
+    "parentRequirements": [
+        "{043EA491-0325-4ADD-8FC2-A30C8EEB4D3F}"
+    ],
+    "childRequirements": [],
+    "implemented": [
+        "{7F7632D9-FA40-4F38-8DEA-C83CD4325A32}"
+    ],
+    "prefix": "LT",
+    "url": "https://github.com/BlackOrca/IPS-LinkTap.git"
+}

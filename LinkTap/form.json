@@ -1,0 +1,25 @@
+{
+    "elements": [
+        {
+            "type": "ValidationTextBox",
+            "name": "LinkTapId",
+            "caption": "LinkTap ID",
+            "required": true
+        },
+        {
+            "type": "ValidationTextBox",
+            "name": "UplinkTopic",
+            "caption": "Uplink Topic",
+            "value": "linktap",
+            "required": true
+        },
+        {
+            "type": "ValidationTextBox",
+            "name": "DownlinkTopic",
+            "caption": "Downlink Topic",
+            "required": true
+        }
+    ],
+    "actions": [],
+    "status": []
+}

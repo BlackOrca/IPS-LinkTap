@@ -1,0 +1,12 @@
+{
+    "id": "{71FF6BC7-BF84-F1DE-72CE-A23DAC425A33}",
+    "name": "LinkTap",
+    "author": "BlackOrca",
+    "url": "https://github.com/BlackOrca/IPS-LinkTap.git",
+    "compatibility": {
+        "version": "7.0"
+    },
+    "version": "1.0",
+    "build": 1,
+    "date": 0
+}
