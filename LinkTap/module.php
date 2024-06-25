@@ -86,11 +86,10 @@ declare(strict_types=1);
 
 			$data = json_decode($JSONString, true);
 
-			$this->SendDebug('ReceiveData', $data, 0);
+			$paylod = json_decode($data['Payload'], true);
 
-			$battery = $data['dev_stat']['battery'];
-			$gatewayId = $data['gw_id'];
-
+			$battery = $paylod['dev_stat']['battery'];
+			$gatewayId = $paylod['gw_id'];
 
 			$this->SetValue(self::Battery, $battery);
 			$this->SetValue(self::GatewayId, $gatewayId);
