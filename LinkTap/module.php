@@ -67,9 +67,9 @@ declare(strict_types=1);
 		{		
 			if($this->ReadPropertyString('LinkTapId') == '' || 
 				$this->ReadPropertyString('UplinkTopic') == '' || 
-				//$this->ReadPropertyString('UplinkReplyTopic') == '' || 
-				$this->ReadPropertyString('DownlinkTopic') == '' || 
-				//$this->ReadPropertyString('DownlinkReplyTopic') == '') 
+				//$this->ReadPropertyString('UplinkReplyTopic') == '' ||				 
+				//$this->ReadPropertyString('DownlinkReplyTopic') == '' ||
+				$this->ReadPropertyString('DownlinkTopic') == '') 
 			{
 				$this->SendDebug("LinkTapId", "LinkTapId oder Topics nicht gesetzt!", 0);
 				$this->SetValue(self::Active, false);
