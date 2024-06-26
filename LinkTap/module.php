@@ -420,8 +420,8 @@ class LinkTap extends IPSModule
 		switch($payload['cmd'])
 		{
 			case 0: //Handshake
-				if(array_key_exists('ver', $payload) || array_key_exists('end_dev', $payload))
-					$this->AnswerHandshake($payload);
+				// if(array_key_exists('ver', $payload) || array_key_exists('end_dev', $payload))
+				// 	$this->AnswerHandshake($payload);
 				break;
 
 			case 3: //Status Update
