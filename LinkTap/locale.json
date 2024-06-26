@@ -18,7 +18,23 @@
             "ManualMode": "Manueller Modus",
             "WateringActive": "Bewässerung aktiv",
             "EcoFinal": "Eco Final",
-            "StopWatering": "Bewässerung stoppen"
+            "StopWatering": "Bewässerung stoppen",
+            "StartWateringImmediately": "Sofort Bewässern",
+            "NoWatering": "Keine Bewässerung",
+            "HalfHour": "30 Minuten",
+            "OneHour": "1 Stunde",
+            "TwoHours": "2 Stunden",
+            "ThreeHours": "3 Stunden",
+            "FourHours": "4 Stunden",
+            "FiveHours": "5 Stunden",
+            "SixHours": "6 Stunden",
+            "EightHours": "8 Stunden",
+            "TenHours": "10 Stunden",
+            "TwelveHours": "12 Stunden",
+            "FourtenHours": "14 Stunden",
+            "EighteenHours": "18 Stunden",
+            "TwentyThreeHours": "23 Stunden",
+            "MaxWateringTime": "Maximale Bewässerungszeit"
         }
     }
 }

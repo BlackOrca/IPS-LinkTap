@@ -23,6 +23,7 @@ class LinkTap extends IPSModule
 	const EcoFinal = "EcoFinal";
 
 	const StopWatering = "StopWatering";
+	const StartWateringImmediately = "StartWateringImmediately";
 
 	public function Create()
 	{
@@ -38,6 +39,30 @@ class LinkTap extends IPSModule
 		$this->RegisterVariableBoolean(self::StopWatering, $this->Translate(self::StopWatering), '~Switch', 10);
 		$this->EnableAction(self::StopWatering);
 
+		if(!IPS_VariableProfileExists('LINKTAP.IMMEDIATELY.SECONDS'))
+		{
+			IPS_CreateVariableProfile('LINKTAP.IMMEDIATELY.SECONDS', VARIABLETYPE_INTEGER);
+			IPS_SetVariableProfileIcon('LINKTAP.IMMEDIATELY.SECONDS', 'Drops');
+			IPS_SetVariableProflileValues('LINKTAP.IMMEDIATELY.SECONDS', 2, , 86340);
+			IPS_SetVariableProfileAssociation('LINKTAP.IMMEDIATELY.SECONDS', 2, $this->Translate('NoWatering'), '', -1);
+			IPS_SetVariableProfileAssociation('LINKTAP.IMMEDIATELY.SECONDS', 1800, $this->Translate('HalfHour'), 'Drops', 0x0000FF);
+			IPS_SetVariableProfileAssociation('LINKTAP.IMMEDIATELY.SECONDS', 3600, $this->Translate('OneHour'), 'Drops', 0x0000FF);
+			IPS_SetVariableProfileAssociation('LINKTAP.IMMEDIATELY.SECONDS', 7200, $this->Translate('TwoHours'), 'Drops', 0x0000FF);
+			IPS_SetVariableProfileAssociation('LINKTAP.IMMEDIATELY.SECONDS', 10800, $this->Translate('ThreeHours'), 'Drops', 0x0000FF);
+			IPS_SetVariableProfileAssociation('LINKTAP.IMMEDIATELY.SECONDS', 14400, $this->Translate('FourHours'), 'Drops', 0x0000FF);
+			IPS_SetVariableProfileAssociation('LINKTAP.IMMEDIATELY.SECONDS', 18000, $this->Translate('FiveHours'), 'Drops', 0x0000FF);
+			IPS_SetVariableProfileAssociation('LINKTAP.IMMEDIATELY.SECONDS', 21600, $this->Translate('SixHours'), 'Drops', 0x0000FF);
+			IPS_SetVariableProfileAssociation('LINKTAP.IMMEDIATELY.SECONDS', 25200, $this->Translate('EightHours'), 'Drops', 0x0000FF);
+			IPS_SetVariableProfileAssociation('LINKTAP.IMMEDIATELY.SECONDS', 36000, $this->Translate('TenHours'), 'Drops', 0x0000FF);
+			IPS_SetVariableProfileAssociation('LINKTAP.IMMEDIATELY.SECONDS', 43200, $this->Translate('TwelveHours'), 'Drops', 0x0000FF);
+			IPS_SetVariableProfileAssociation('LINKTAP.IMMEDIATELY.SECONDS', 50400, $this->Translate('FourteenHours'), 'Drops', 0x0000FF);
+			IPS_SetVariableProfileAssociation('LINKTAP.IMMEDIATELY.SECONDS', 64800, $this->Translate('EighteenHours'), 'Drops', 0x0000FF);
+			IPS_SetVariableProfileAssociation('LINKTAP.IMMEDIATELY.SECONDS', 82800, $this->Translate('TwentyThreeHours'), 'Drops', 0x0000FF);
+			IPS_SetVariableProfileAssociation('LINKTAP.IMMEDIATELY.SECONDS', 86340, $this->Translate('MaxWateringTime'), 'Drops', 0x0000FF);
+		}
+
+		$this->RegisterVariableInteger(self::StartWateringImmediately, $this->Translate(self::StartWateringImmediately), 'LINKTAP.IMMEDIATELY.SECONDS', 11);
+		$this->EnableAction(self::StartWateringImmediately);
 
 		$this->RegisterVariableInteger(self::Battery, $this->Translate(self::Battery), '~Battery.100', 50);
 		$this->RegisterVariableInteger(self::SignalStrength, $this->Translate(self::SignalStrength), '~Intensity.100', 60);			
@@ -107,13 +132,46 @@ class LinkTap extends IPSModule
 			case self::StopWatering:
 				$this->StopWatering($Value);
 				break;
+			case self::StartWateringImmediately:
+				$this->StartWateringImmediately($Value);
+				break;
 			default:
 				$this->SendDebug('RequestAction', 'Unknown Ident: ' . $Ident, 0);
 				break;
 		}
 	}
 
-	public function StopWatering(bool $Value)
+	function StartWateringImmediately(int $Value)
+	{
+		$this->SendDebug('StartWateringImmediately', 'StartWateringImmediately', 0);
+
+		if($this->GetValue(self::GatewayId) == '' || $this->ReadPropertyString('LinkTapId') == '')
+		{
+			$this->SendDebug('StartWateringImmediately', 'GatewayId or LinkTapId not set!', 0);
+			return;
+		}
+
+		$payload = [
+			'cmd' => 6,
+			'dev_id' => $this->ReadPropertyString('LinkTapId'),
+			'gw_id' => $this->GetValue(self::GatewayId),
+			'duration' => $Value
+		];
+
+		$data['DataID'] = self::ModulToMqtt;
+		$data['PacketType'] = 3;
+		$data['QualityOfService'] = 0;
+		$data['Retain'] = false;
+		$data['Topic'] = $this->ReadPropertyString('DownlinkTopic');
+		$data['Payload'] = json_encode($payload, JSON_UNESCAPED_SLASHES);
+		$dataJSON = json_encode($data, JSON_UNESCAPED_SLASHES);
+
+		$this->SendDebug('StartWateringImmediately', 'Payload to LinkTap ' . $dataJSON, 0);
+
+		$this->SendDataToParent($dataJSON);
+	}
+
+	function StopWatering(bool $Value)
 	{		
 		$this->SendDebug('StopWatering', 'StopWatering', 0);
 
@@ -249,6 +307,7 @@ class LinkTap extends IPSModule
 		else
 		{
 			IPS_SetDisabled($this->GetIDForIdent(self::StopWatering), true);
+			$this->SetValue(self::StartWateringImmediately, 2);
 		}
 		$this->SetValue(self::EcoFinal, $ecoFinal);
 
