@@ -153,8 +153,8 @@ class LinkTap extends IPSModule
 		$filterResult1 = preg_quote('"Topic":"' . $this->ReadPropertyString('UplinkTopic') . '/' . $this->ReadPropertyString('LinkTapId') . '"');
 		$filterResult2 = preq_quote('"Topic":"' . $this->ReadPropertyString('UplinkTopic') . '"');	
 		$filter = '.*' . $filterResult1 . '|' . $filterResult2 . '.*';
-		$this->SendDebug('ReceiveDataFilter', '.*' . $filterResult . '.*', 0);
-		$this->SetReceiveDataFilter('.*' . $filterResult . '.*');
+		$this->SendDebug('ReceiveDataFilter', '.*' . $filter . '.*', 0);
+		$this->SetReceiveDataFilter('.*' . $filter . '.*');
 
 		if ($this->HasActiveParent() && IPS_GetKernelRunlevel() == KR_READY) {
 			//Initial doing
