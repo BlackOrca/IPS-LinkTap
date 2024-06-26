@@ -277,7 +277,7 @@ class LinkTap extends IPSModule
 
 		$this->SendDebug('Answer Handshake', 'Payload to LinkTap ' . $dataJSON, 0);
 
-		$this->SendDataToParent($dataJSON);
+		//$this->SendDataToParent($dataJSON);
 
 		$this->SendDebug('Payload', 'Answer Handshake done', 0);
 	}
