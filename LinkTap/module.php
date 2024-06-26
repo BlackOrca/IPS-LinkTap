@@ -115,6 +115,7 @@ class LinkTap extends IPSModule
 
 		$paylod = json_decode($data['Payload'], true);
 
+		$this->SendDebug('Payload', 'Payload ' . print_r($payload), 0);
 		$this->SendDebug('Payload', 'Payload Command ' . $payload['cmd'], 0);
 		switch($paylod['cmd'])
 		{
