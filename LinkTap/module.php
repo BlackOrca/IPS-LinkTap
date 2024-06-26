@@ -9,6 +9,18 @@ declare(strict_types=1);
 
 		const Battery = "Battery";
 		const GatewayId = "GatewayId";
+		const IsRfLinked = "IsRfLinked";
+		const IsFlowMeasurementPlugedIn = "IsFlowMeasurementPlugedIn";
+		const FallAlert = "FallAlert";
+		const ValveShutdownFailureAlert = "ValveShutdownFailureAlert";
+		const WaterCutOffAlert = "WaterCutOffAlert";
+		const HighFlowAlert = "HighFlowAlert";
+		const LowFlowAlert = "LowFlowAlert";
+		const SignalStrength = "SignalStrength";
+		const ChildLock = "ChildLock";
+		const ManualMode = "ManualMode";
+		const WateringActive = "WateringActive";
+		const EcoFinal = "EcoFinal";
 
 		public function Create()
 		{
@@ -22,7 +34,22 @@ declare(strict_types=1);
 			$this->RegisterPropertyString('LinkTapId', '');
 
 
-			$this->RegisterVariableInteger(self::Battery, $this->Translate(self::Battery), '~Battery.100', 10);
+			$this->RegisterVariableInteger(self::Battery, $this->Translate(self::Battery), '~Battery.100', 50);
+			$this->RegisterVariableInteger(self::SignalStrength, $this->Translate(self::SignalStrength), '~Intensity.100', 60);			
+
+			$this->RegisterVariableBoolean(self::WateringActive, $this->Translate(self::WateringActive), '~Switch', 100);			
+			$this->RegisterVariableBoolean(self::IsFlowMeasurementPlugedIn, $this->Translate(self::IsFlowMeasurementPlugedIn), '~Switch', 110);
+			$this->RegisterVariableBoolean(self::ChildLock, $this->Translate(self::ChildLock), '~Switch', 120);
+			$this->RegisterVariableBoolean(self::ManualMode, $this->Translate(self::ManualMode), '~Switch', 130);
+			$this->RegisterVariableBoolean(self::IsRfLinked, $this->Translate(self::IsRfLinked), '~Switch', 140);	
+			$this->RegisterVariableBoolean(self::EcoFinal, $this->Translate(self::EcoFinal), '~Switch', 150);
+
+			$this->RegisterVariableBoolean(self::FallAlert, $this->Translate(self::FallAlert), '~Alert', 200);
+			$this->RegisterVariableBoolean(self::ValveShutdownFailureAlert, $this->Translate(self::ValveShutdownFailureAlert), '~Alert', 210);
+			$this->RegisterVariableBoolean(self::WaterCutOffAlert, $this->Translate(self::WaterCutOffAlert), '~Alert', 220);
+			$this->RegisterVariableBoolean(self::HighFlowAlert, $this->Translate(self::HighFlowAlert), '~Alert', 230);
+			$this->RegisterVariableBoolean(self::LowFlowAlert, $this->Translate(self::LowFlowAlert), '~Alert', 240);
+
 			$this->RegisterVariableString(self::GatewayId, $this->Translate(self::GatewayId), '', 1000);
 
 			$this->ConnectParent(self::MqttParent);
@@ -88,12 +115,50 @@ declare(strict_types=1);
 
 			$paylod = json_decode($data['Payload'], true);
 
-			$battery = $paylod['dev_stat']['battery'];
-			$gatewayId = $paylod['gw_id'];
-
-			$this->SetValue(self::Battery, $battery);
-			$this->SetValue(self::GatewayId, $gatewayId);
+			switch($paylod['cmd'])
+			{
+				case 3:										
+					$this->UpdateStatus($paylod);
+					break;
+				default:
+					//$this->SendDebug('ReceiveData', 'Unknown cmd: ' . $paylod['cmd'], 0);
+					break;
+			}			
 		}
+	}
+
+	function UpdateStatus(array $payload) : bool
+	{
+		$this->SendDebug('Payload', 'Process Update Status Payload');
+		$battery = $paylod['dev_stat']['battery'];
+		$gatewayId = $paylod['gw_id'];
+		$isRfLinked = $paylod['dev_stat']['is_rf_linked'];
+		$isFlowMeasurementPlugedIn = $paylod['dev_stat']['is_flm_plugin'];
+		$fallAlert = $paylod['dev_stat']['is_fall'];
+		$valveShutdownFailureAlert = $paylod['dev_stat']['is_broken'];
+		$waterCutOffAlert = $paylod['dev_stat']['is_cutoff'];
+		$highFlowAlert = $paylod['dev_stat']['is_leak'];
+		$lowFlowAlert = $paylod['dev_stat']['is_clog'];
+		$signalStrength = $paylod['dev_stat']['signal'];
+		$childLock = $paylod['dev_stat']['child_lock'];
+		$manualMode = $paylod['dev_stat']['is_manual_mode'];
+		$wateringActive = $paylod['dev_stat']['is_watering'];
+		$ecoFinal = $paylod['dev_stat']['is_final'];
+		
+		$this->SetValue(self::Battery, $battery);
+		$this->SetValue(self::GatewayId, $gatewayId);
+		$this->SetValue(self::IsRfLinked, $isRfLinked);
+		$this->SetValue(self::IsFlowMeasurementPlugedIn, $isFlowMeasurementPlugedIn);
+		$this->SetValue(self::FallAlert, $fallAlert);
+		$this->SetValue(self::ValveShutdownFailureAlert, $valveShutdownFailureAlert);
+		$this->SetValue(self::WaterCutOffAlert, $waterCutOffAlert);
+		$this->SetValue(self::HighFlowAlert, $highFlowAlert);
+		$this->SetValue(self::LowFlowAlert, $lowFlowAlert);
+		$this->SetValue(self::SignalStrength, $signalStrength);
+		$this->SetValue(self::ChildLock, $childLock);
+		$this->SetValue(self::ManualMode, $manualMode);
+		$this->SetValue(self::WateringActive, $wateringActive);
+		$this->SetValue(self::EcoFinal, $ecoFinal);		
 	}
 
 

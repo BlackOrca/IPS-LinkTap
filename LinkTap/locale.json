@@ -5,7 +5,19 @@
             "DownlinkTopic": "Downlink Topic",
             "LinkTapId": "LinkTap Id",
             "Battery": "Batterie",
-            "GatewayId": "Gateway Id"
+            "GatewayId": "Gateway Id",
+            "IsRfLinked": "RF verbunden",
+            "IsFlowMeasurementPlugedIn": "Durchflussmessung angeschlossen",
+            "FallAlert": "Fallalarm",
+            "ValveShutdownFailureAlert": "Ventilabschaltung fehlgeschlagen",
+            "WaterCutOffAlert": "Kein Wasser Alarm",
+            "HighFlowAlert": "Hoher Durchfluss Alarm",
+            "LowFlowAlert": "Niedriger Durchfluss Alarm",
+            "SignalStrength": "Signalstärke",
+            "ChildLock": "Kindersicherung",
+            "ManualMode": "Manueller Modus",
+            "WateringActive": "Bewässerung aktiv",
+            "EcoFinal": "Eco Final"
         }
     }
 }
