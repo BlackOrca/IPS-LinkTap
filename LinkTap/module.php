@@ -253,10 +253,12 @@ class LinkTap extends IPSModule
 
 		$this->SetValue(self::StopWatering, false);
 	}
-
 	
 	function AnswerHandshake(array $payload)
 	{
+		if(!array_key_exists('ver', $payload) && !array_key_exists('end_dev', $payload))
+			return;
+
 		$this->SendDebug('Payload', 'Answer Handshake start', 0);
 
 		if($this->GetValue(self::GatewayId) == '' || $this->ReadPropertyString('LinkTapId') == '')
@@ -277,7 +279,7 @@ class LinkTap extends IPSModule
 
 		$this->SendDebug('Answer Handshake', 'Payload to LinkTap ' . $dataJSON, 0);
 
-		//$this->SendDataToParent($dataJSON);
+		$this->SendDataToParent($dataJSON);
 
 		$this->SendDebug('Payload', 'Answer Handshake done', 0);
 	}
@@ -392,7 +394,8 @@ class LinkTap extends IPSModule
 		switch($payload['cmd'])
 		{
 			case 0: //Handshake
-				$this->AnswerHandshake($payload);
+				if(array_key_exists('ver', $payload) || array_key_exists('end_dev', $payload))
+					$this->AnswerHandshake($payload);
 				break;
 
 			case 3: //Status Update
