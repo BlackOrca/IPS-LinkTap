@@ -130,20 +130,52 @@ class LinkTap extends IPSModule
 	function UpdateStatus(array $payload) : bool
 	{
 		$this->SendDebug('Payload', 'Update Status Payload start', 0);
-		$battery = $payload['dev_stat']['battery'];
+
+		if(!array_key_exists('dev_stat', $payload))
+		{
+			$this->SendDebug('Payload', 'dev_stat not found', 0);
+			return false;
+		}
+
+		$desiredDevId = $this->ReadPropertyString('LinkTapId');
+		$devStats = $payload['dev_stat'];
+		$specificDevice = null;
+
+		// filter if dev_stat is an array or an object. when a array then search for the desired device.
+		if (is_array($devStats) && array_key_exists(0, $devStats)) 
+		{
+			foreach ($devStats as $device) {
+				if ($device['dev_id'] == $desiredDevId) { 
+					$specificDevice = $device;
+					break;
+				}
+			}
+		} 
+		else 
+		{
+			$specificDevice = $devStats;
+		}
+
+		if ($specificDevice === null) 
+		{
+			$this->SendDebug('Payload', 'Specific device not found', 0);
+			return false;
+		}
+		
 		$gatewayId = $payload['gw_id'];
-		$isRfLinked = $payload['dev_stat']['is_rf_linked'];
-		$isFlowMeasurementPlugedIn = $payload['dev_stat']['is_flm_plugin'];
-		$fallAlert = $payload['dev_stat']['is_fall'];
-		$valveShutdownFailureAlert = $payload['dev_stat']['is_broken'];
-		$waterCutOffAlert = $payload['dev_stat']['is_cutoff'];
-		$highFlowAlert = $payload['dev_stat']['is_leak'];
-		$lowFlowAlert = $payload['dev_stat']['is_clog'];
-		$signalStrength = $payload['dev_stat']['signal'];
-		$childLock = $payload['dev_stat']['child_lock'];
-		$manualMode = $payload['dev_stat']['is_manual_mode'];
-		$wateringActive = $payload['dev_stat']['is_watering'];
-		$ecoFinal = $payload['dev_stat']['is_final'];
+		$battery = $specificDevice['battery'];		
+		$isRfLinked = $specificDevice['is_rf_linked'];
+		$isFlowMeasurementPlugedIn = $specificDevice['is_flm_plugin'];
+		$fallAlert = $specificDevice['is_fall'];
+		$valveShutdownFailureAlert = $specificDevice['is_broken'];
+		$waterCutOffAlert = $specificDevice['is_cutoff'];
+		$highFlowAlert = $specificDevice['is_leak'];
+		$lowFlowAlert = $specificDevice['is_clog'];
+		$signalStrength = $specificDevice['signal'];
+		$childLock = $specificDevice['child_lock'];
+		$manualMode = $specificDevice['is_manual_mode'];
+		$wateringActive = $specificDevice['is_watering'];
+		$ecoFinal = $specificDevice['is_final'];
 		
 		$this->SetValue(self::Battery, $battery);
 		$this->SetValue(self::GatewayId, $gatewayId);
