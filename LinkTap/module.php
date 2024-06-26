@@ -440,50 +440,50 @@ class LinkTap extends IPSModule
 			case 0:
 				$this->SendDebug('ProcessResult', 'Success from Gateway', 0);
 				$this->SetValue(self::LastCommandResponse, $this->Translate('Success'));
-				$result true;
+				$result = true;
 				break;
 			case 1:
 				$this->SendDebug('ProcessResult', 'Error from Gateway: Message format error (1)', 0);
 				$this->SetValue(self::LastCommandResponse, $this->Translate('Error from Gateway: Message format error (1)'));
-				$result false;
+				$result = false;
 				break;
 			case 2:
 				$this->SendDebug('ProcessResult', 'Error from Gateway: CMD message not supported (2)', 0);
 				$this->SetValue(self::LastCommandResponse, $this->Translate('Error from Gateway: CMD message not supported (2)'));
-				$result false;
+				$result = false;
 				break;
 			case 3:
 				$this->SendDebug('ProcessResult', 'Error from Gateway: Gateway ID not matched (3)', 0);
 				$this->SetValue(self::LastCommandResponse, $this->Translate('Error from Gateway: Gateway ID not matched (3)'));
-				$result false;
+				$result = false;
 				break;
 			case 4:
 				$this->SendDebug('ProcessResult', 'Error from Gateway: End device ID error (4)', 0);
 				$this->SetValue(self::LastCommandResponse, $this->Translate('Error from Gateway: End device ID error (4)'));
-				$result false;
+				$result = false;
 				break;
 			case 5:
 				$this->SendDebug('ProcessResult', 'Error from Gateway: End device ID not found (5)', 0);
 				$this->SetValue(self::LastCommandResponse, $this->Translate('Error from Gateway: End device ID not found (5)'));
-				$result false;
+				$result = false;
 				break;
 			case 6:
 				$this->SendDebug('ProcessResult', 'Error from Gateway: Gateway internal error (6)', 0);
 				$this->SetValue(self::LastCommandResponse, $this->Translate('Error from Gateway: Gateway internal error (6)'));
-				$result false;
+				$result = false;
 				break;
 			case 7:
 				$this->SendDebug('ProcessResult', 'Error from Gateway: Conflict with watering plan (7)', 0);
 				$this->SetValue(self::LastCommandResponse, $this->Translate('Error from Gateway: Conflict with watering plan (7)'));
-				$result false;
+				$result = false;
 				break;
 			case 8:
 				$this->SendDebug('ProcessResult', 'Error from Gateway: Gateway busy (8)', 0);
 				$this->SetValue(self::LastCommandResponse, $this->Translate('Error from Gateway: Gateway busy (8)'));
-				$result false;
+				$result = false;
 				break;
 			default:
-				$result false;
+				$result = false;
 				break;
 		}
 		return $result;
