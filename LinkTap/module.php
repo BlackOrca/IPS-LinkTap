@@ -136,7 +136,7 @@ class LinkTap extends IPSModule
 		$data['QualityOfService'] = 0;
 		$data['Retain'] = false;
 		$data['Topic'] = $this->ReadPropertyString('DownlinkTopic');
-		$data['Payload'] = $payload;
+		$data['Payload'] = json_encode($payload, JSON_UNESCAPED_SLASHES);
 		$dataJSON = json_encode($data, JSON_UNESCAPED_SLASHES);
 
 		$this->SendDebug('StopWatering', 'Payload to LinkTap ' . $dataJSON, 0);
