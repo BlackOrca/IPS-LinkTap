@@ -79,6 +79,17 @@ class LinkTap extends IPSModule
 			IPS_SetVariableProfileAssociation('LINKTAP.WATERINGMODES', 6, $this->Translate('MonthMode'), '', -1);
 		}
 
+		if(!IPS_VariableProfileExists('LINKTAP.LOCKS'))
+		{
+			IPS_CreateVariableProfile('LINKTAP.LOCKS', VARIABLETYPE_INTEGER);
+			IPS_SetVariableProfileIcon('LINKTAP.LOCKS', 'Menu');
+			IPS_SetVariableProfileText('LINKTAP.LOCKS', '', '');
+			IPS_SetVariableProfileValues('LINKTAP.LOCKS', 0, 2, 1);			
+			IPS_SetVariableProfileAssociation('LINKTAP.LOCKS', 0, $this->Translate('Unlocked'), '', -1);
+			IPS_SetVariableProfileAssociation('LINKTAP.LOCKS', 1, $this->Translate('PartiallyLocked'), '', -1);
+			IPS_SetVariableProfileAssociation('LINKTAP.LOCKS', 2, $this->Translate('CompletelyLocked'), '', -1);
+		}
+
 		$this->RegisterVariableInteger(self::ActualWateringMode, $this->Translate(self::ActualWateringMode), 'LINKTAP.WATERINGMODES', 1);
 
 		$this->RegisterVariableInteger(self::StartWateringImmediately, $this->Translate(self::StartWateringImmediately), 'LINKTAP.IMMEDIATELY.SECONDS', 11);
@@ -92,7 +103,7 @@ class LinkTap extends IPSModule
 
 		$this->RegisterVariableBoolean(self::WateringActive, $this->Translate(self::WateringActive), '~Switch', 100);			
 		$this->RegisterVariableBoolean(self::IsFlowMeasurementPlugedIn, $this->Translate(self::IsFlowMeasurementPlugedIn), '~Switch', 110);
-		$this->RegisterVariableBoolean(self::ChildLock, $this->Translate(self::ChildLock), '~Switch', 120);
+		$this->RegisterVariableInteger(self::ChildLock, $this->Translate(self::ChildLock), 'LINKTAP.LOCKS', 120);
 		$this->RegisterVariableBoolean(self::ManualMode, $this->Translate(self::ManualMode), '~Switch', 130);
 		$this->RegisterVariableBoolean(self::IsRfLinked, $this->Translate(self::IsRfLinked), '~Switch', 140);	
 		$this->RegisterVariableBoolean(self::EcoFinal, $this->Translate(self::EcoFinal), '~Switch', 150);
@@ -348,6 +359,7 @@ class LinkTap extends IPSModule
 		$this->SetValue(self::LowFlowAlert, $lowFlowAlert);
 		$this->SetValue(self::SignalStrength, $signalStrength);
 		$this->SetValue(self::ChildLock, $childLock);
+
 		$this->SetValue(self::ManualMode, $manualMode);
 		$this->SetValue(self::WateringActive, $wateringActive);
 		if($wateringActive)
@@ -394,8 +406,8 @@ class LinkTap extends IPSModule
 		switch($payload['cmd'])
 		{
 			case 0: //Handshake
-				if(array_key_exists('ver', $payload) || array_key_exists('end_dev', $payload))
-					$this->AnswerHandshake($payload);
+				// if(array_key_exists('ver', $payload) || array_key_exists('end_dev', $payload))
+				// 	$this->AnswerHandshake($payload);
 				break;
 
 			case 3: //Status Update

@@ -52,7 +52,10 @@
             "SevenDayMode": "7 Tage Modus",
             "OddEvenMode": "Ungerade Gerade Modus",
             "IntervalMode": "Intervallmodus",
-            "MonthMode": "Monatsmodus"
+            "MonthMode": "Monatsmodus",
+            "Unlocked": "Entsperrt",
+            "PartiallyLocked": "Teilweise gesperrt",
+            "CompletelyLocked": "Vollständig gesperrt"
         }
     }
 }
