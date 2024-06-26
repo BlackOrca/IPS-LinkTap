@@ -34,7 +34,25 @@
             "FourteenHours": "14 Stunden",
             "EighteenHours": "18 Stunden",
             "TwentyThreeHours": "23 Stunden",
-            "MaxWateringTime": "Maximale Bewässerungszeit"
+            "MaxWateringTime": "Maximale Bewässerungszeit",
+            "DismissAlert": "Alarm bestätigen",
+            "LastCommandResponse": "Letzte Befehlsantwort",
+            "Success": "Ok",
+            "Error from Gateway: Message format error (1)": "Fehler vom Gateway: Nachrichtenformatfehler (1)",
+            "Error from Gateway: CMD message not supported (2)": "Fehler vom Gateway: CMD-Nachricht nicht unterstützt (2)",
+            "Error from Gateway: Gateway ID not matched (3)": "Fehler vom Gateway: Gateway-ID nicht übereinstimmend (3)",
+            "Error from Gateway: End device ID error (4)": "Fehler vom Gateway: Endgeräte-ID-Fehler (4)",
+            "Error from Gateway: End device ID not found (5)": "Fehler vom Gateway: Endgeräte-ID nicht gefunden (5)",
+            "Error from Gateway: Gateway internal error (6)": "Fehler vom Gateway: Gateway interner Fehler (6)",
+            "Error from Gateway: Conflict with watering plan (7)": "Fehler vom Gateway: Konflikt mit Bewässerungsplan (7)",
+            "Error from Gateway: Gateway busy (8)": "Fehler vom Gateway: Gateway beschäftigt (8)",
+            "ActualWateringMode": "Aktueller Bewässerungsmodus",
+            "InstantMode": "Sofortmodus",
+            "CalendarMode": "Kalendermodus",
+            "SevenDayMode": "7 Tage Modus",
+            "OddEvenMode": "Ungerade Gerade Modus",
+            "IntervalMode": "Intervallmodus",
+            "MonthMode": "Monatsmodus"
         }
     }
 }

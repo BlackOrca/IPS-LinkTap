@@ -24,6 +24,9 @@ class LinkTap extends IPSModule
 
 	const StopWatering = "StopWatering";
 	const StartWateringImmediately = "StartWateringImmediately";
+	const DismissAlert = "DismissAlert";
+	const LastCommandResponse = "LastCommandResponse";
+	const ActualWateringMode = "ActualWateringMode";
 
 	public function Create()
 	{
@@ -62,11 +65,30 @@ class LinkTap extends IPSModule
 			IPS_SetVariableProfileAssociation('LINKTAP.IMMEDIATELY.SECONDS', 86340, $this->Translate('MaxWateringTime'), 'Drops', 0x0000FF);
 		}
 
+		if(!IPS_VariableExists('LINKTAP.WATERINGMODES'))
+		{
+			IPS_CreateVariableProfile('LINKTAP.WATERINGMODES', VARIABLETYPE_INTEGER);
+			IPS_SetVariableProfileIcon('LINKTAP.WATERINGMODES', 'Menu');
+			IPS_SetVariableProfileText('LINKTAP.WATERINGMODES', '', '');
+			IPS_SetVariableProfileValues('LINKTAP.WATERINGMODES', 1, 6, 1);			
+			IPS_SetVariableProfileAssociation('LINKTAP.WATERINGMODES', 1, $this->Translate('InstantMode'), '', -1);
+			IPS_SetVariableProfileAssociation('LINKTAP.WATERINGMODES', 2, $this->Translate('CalendarMode'), '', -1);
+			IPS_SetVariableProfileAssociation('LINKTAP.WATERINGMODES', 3, $this->Translate('SevenDayMode'), '', -1);
+			IPS_SetVariableProfileAssociation('LINKTAP.WATERINGMODES', 4, $this->Translate('OddEvenMode'), '', -1);
+			IPS_SetVariableProfileAssociation('LINKTAP.WATERINGMODES', 5, $this->Translate('IntervalMode'), '', -1);
+			IPS_SetVariableProfileAssociation('LINKTAP.WATERINGMODES', 6, $this->Translate('MonthMode'), '', -1);
+		}
+
+		$this->RegisterVariableInteger(self::ActualWateringMode, $this->Translate(self::ActualWateringMode), 'LINKTAP.WATERINGMODES', 1);
+
 		$this->RegisterVariableInteger(self::StartWateringImmediately, $this->Translate(self::StartWateringImmediately), 'LINKTAP.IMMEDIATELY.SECONDS', 11);
 		$this->EnableAction(self::StartWateringImmediately);
 
 		$this->RegisterVariableInteger(self::Battery, $this->Translate(self::Battery), '~Battery.100', 50);
-		$this->RegisterVariableInteger(self::SignalStrength, $this->Translate(self::SignalStrength), '~Intensity.100', 60);			
+		$this->RegisterVariableInteger(self::SignalStrength, $this->Translate(self::SignalStrength), '~Intensity.100', 60);	
+		
+		$this->RegisterVariableBoolean(self::DismissAlert, $this->Translate(self::DismissAlert), '~Switch', 70);
+		$this->EnableAction(self::DismissAlert);
 
 		$this->RegisterVariableBoolean(self::WateringActive, $this->Translate(self::WateringActive), '~Switch', 100);			
 		$this->RegisterVariableBoolean(self::IsFlowMeasurementPlugedIn, $this->Translate(self::IsFlowMeasurementPlugedIn), '~Switch', 110);
@@ -82,6 +104,7 @@ class LinkTap extends IPSModule
 		$this->RegisterVariableBoolean(self::LowFlowAlert, $this->Translate(self::LowFlowAlert), '~Alert', 240);
 
 		$this->RegisterVariableString(self::GatewayId, $this->Translate(self::GatewayId), '', 1000);
+		$this->RegisterVariableString(self::LastCommandResponse, $this->Translate(self::LastCommandResponse), '', 1001);
 
 		$this->ConnectParent(self::MqttParent);
 	}
@@ -136,10 +159,40 @@ class LinkTap extends IPSModule
 			case self::StartWateringImmediately:
 				$this->StartWateringImmediately($Value);
 				break;
+			case self::DismissAlert:
+				$this->DismissAlert($Value);
 			default:
 				$this->SendDebug('RequestAction', 'Unknown Ident: ' . $Ident, 0);
 				break;
 		}
+	}
+
+	function DismissAlert(bool $Value)
+	{
+		$this->SendDebug('DismissAlert', 'DismissAlert', 0);
+
+		if($this->GetValue(self::GatewayId) == '' || $this->ReadPropertyString('LinkTapId') == '')
+		{
+			$this->SendDebug('DismissAlert', 'GatewayId or LinkTapId not set!', 0);
+			return;
+		}
+
+		$this->SetValue(self::DismissAlert, true);
+
+		$payload = [
+			'cmd' => 11,
+			'dev_id' => $this->ReadPropertyString('LinkTapId'),
+			'gw_id' => $this->GetValue(self::GatewayId),
+			'alert' => 0
+		];
+
+		$dataJSON = $this->GetPackageForDownlink($payload);
+
+		$this->SendDebug('DismissAlert', 'Payload to LinkTap ' . $dataJSON, 0);
+
+		$this->SendDataToParent($dataJSON);
+
+		$this->SetValue(self::DismissAlert, false);
 	}
 
 	function StartWateringImmediately(int $Value)
@@ -152,6 +205,14 @@ class LinkTap extends IPSModule
 			return;
 		}
 
+		if($Value <= 2)
+		{
+			$this->SendDebug('StartWateringImmediately', 'Value is less then minimum of 3 seconds. Means in our case, we stop watering if watering is active.', 0);
+			$this->StopWatering(true);
+			$this->SetValue(self::StartWateringImmediately, 2);
+			return;
+		}
+
 		$payload = [
 			'cmd' => 6,
 			'dev_id' => $this->ReadPropertyString('LinkTapId'),
@@ -159,13 +220,7 @@ class LinkTap extends IPSModule
 			'duration' => $Value
 		];
 
-		$data['DataID'] = self::ModulToMqtt;
-		$data['PacketType'] = 3;
-		$data['QualityOfService'] = 0;
-		$data['Retain'] = false;
-		$data['Topic'] = $this->ReadPropertyString('DownlinkTopic');
-		$data['Payload'] = json_encode($payload, JSON_UNESCAPED_SLASHES);
-		$dataJSON = json_encode($data, JSON_UNESCAPED_SLASHES);
+		$dataJSON = $this->GetPackageForDownlink($payload);
 
 		$this->SendDebug('StartWateringImmediately', 'Payload to LinkTap ' . $dataJSON, 0);
 
@@ -190,13 +245,7 @@ class LinkTap extends IPSModule
 			'gw_id' => $this->GetValue(self::GatewayId)
 		];
 
-		$data['DataID'] = self::ModulToMqtt;
-		$data['PacketType'] = 3;
-		$data['QualityOfService'] = 0;
-		$data['Retain'] = false;
-		$data['Topic'] = $this->ReadPropertyString('DownlinkTopic');
-		$data['Payload'] = json_encode($payload, JSON_UNESCAPED_SLASHES);
-		$dataJSON = json_encode($data, JSON_UNESCAPED_SLASHES);
+		$dataJSON = $this->GetPackageForDownlink($payload);
 
 		$this->SendDebug('StopWatering', 'Payload to LinkTap ' . $dataJSON, 0);
 
@@ -205,35 +254,32 @@ class LinkTap extends IPSModule
 		$this->SetValue(self::StopWatering, false);
 	}
 
-	public function ReceiveData($JSONString)
-	{		
-		if($this->ReadPropertyString('LinkTapId') == '' || 
-			$this->ReadPropertyString('UplinkTopic') == '' || 
-			//$this->ReadPropertyString('UplinkReplyTopic') == '' ||				 
-			//$this->ReadPropertyString('DownlinkReplyTopic') == '' ||
-			$this->ReadPropertyString('DownlinkTopic') == '') 
+	
+	function AnswerHandshake(array $payload)
+	{
+		$this->SendDebug('Payload', 'Answer Handshake start', 0);
+
+		if($this->GetValue(self::GatewayId) == '' || $this->ReadPropertyString('LinkTapId') == '')
 		{
-			$this->SendDebug("LinkTapId", "LinkTapId oder Topics nicht gesetzt!", 0);
-			$this->SetValue(self::Active, false);
+			$this->SendDebug('StartWateringImmediately', 'GatewayId or LinkTapId not set!', 0);
 			return;
 		}
 
-		$this->SendDebug('ReceiveData', $JSONString, 0);
+		$payload = [
+			'cmd' => 0,
+			'gw_id' => $payload['gw_id'],
+			'date' => date('Ymd'),
+			'time' => date('His'),
+			'wday' => date('N')
+		];
 
-		$data = json_decode($JSONString, true);
+		$dataJSON = $this->GetPackageForDownlink($payload);
 
-		$payload = json_decode($data['Payload'], true);
+		$this->SendDebug('Answer Handshake', 'Payload to LinkTap ' . $dataJSON, 0);
 
-		$this->SendDebug('Payload', 'Payload Command ' . $payload['cmd'], 0);
-		switch($payload['cmd'])
-		{
-			case 3:		
-				$this->UpdateStatus($payload);
-				break;
-			default:
-				//$this->SendDebug('ReceiveData', 'Unknown cmd: ' . $paylod['cmd'], 0);
-				break;
-		}			
+		$this->SendDataToParent($dataJSON);
+
+		$this->SendDebug('Payload', 'Answer Handshake done', 0);
 	}
 
 	function UpdateStatus(array $payload) : bool
@@ -287,6 +333,7 @@ class LinkTap extends IPSModule
 		$manualMode = $specificDevice['is_manual_mode'];
 		$wateringActive = $specificDevice['is_watering'];
 		$ecoFinal = $specificDevice['is_final'];
+		$wateringMode = $specificDevice['plan_mode'];
 		
 		$this->SetValue(self::Battery, $battery);
 		$this->SetValue(self::GatewayId, $gatewayId);
@@ -301,7 +348,7 @@ class LinkTap extends IPSModule
 		$this->SetValue(self::ChildLock, $childLock);
 		$this->SetValue(self::ManualMode, $manualMode);
 		$this->SetValue(self::WateringActive, $wateringActive);
-		if($wateringAcitve)
+		if($wateringActive)
 		{
 			IPS_SetDisabled($this->GetIDForIdent(self::StopWatering), false);
 		}
@@ -311,9 +358,123 @@ class LinkTap extends IPSModule
 			$this->SetValue(self::StartWateringImmediately, 2);
 		}
 		$this->SetValue(self::EcoFinal, $ecoFinal);
+		$this->SetValue(self::ActualWateringMode, $wateringMode);
 
 		$this->SendDebug('Payload', 'Update Status Payload done', 0);
 		return true;
+	}
+
+	public function ReceiveData($JSONString)
+	{		
+		if($this->ReadPropertyString('LinkTapId') == '' || 
+			$this->ReadPropertyString('UplinkTopic') == '' || 
+			//$this->ReadPropertyString('UplinkReplyTopic') == '' ||				 
+			//$this->ReadPropertyString('DownlinkReplyTopic') == '' ||
+			$this->ReadPropertyString('DownlinkTopic') == '') 
+		{
+			$this->SendDebug("LinkTapId", "LinkTapId oder Topics nicht gesetzt!", 0);
+			return;
+		}
+
+		$this->SendDebug('ReceiveData', $JSONString, 0);
+
+		$data = json_decode($JSONString, true);
+
+		$payload = json_decode($data['Payload'], true);
+		
+		$this->ProcessPayload($payload);
+	}
+
+	function ProcessPayload(array $payload)
+	{
+		$this->SendDebug('Payload', 'Payload Command ' . $payload['cmd'], 0);
+
+		switch($payload['cmd'])
+		{
+			case 0: //Handshake
+				$this->AnswerHandshake($payload);
+				break;
+
+			case 3: //Status Update
+				$this->UpdateStatus($payload);
+				break;
+
+			case 6: //Start Watering Immediately
+				if($this->ProcessResult($payload['ret']))
+					$this->SetValue(self::WateringActive, true);				
+				break;
+
+			case 7: //Stop Watering
+				if($this->ProcessResult($payload['ret']))
+					$this->SetValue(self::WateringActive, false);				
+				break;
+
+			case 11: //Dismiss Alert
+				$this->ProcessResult($payload['ret']);
+				break;
+
+			default:
+				//$this->SendDebug('ReceiveData', 'Unknown cmd: ' . $paylod['cmd'], 0);
+				break;
+		}		
+	}
+
+	function GetPackageForDownlink(array $payload) : string
+	{
+		$data['DataID'] = self::ModulToMqtt;
+		$data['PacketType'] = 3;
+		$data['QualityOfService'] = 0;
+		$data['Retain'] = false;
+		$data['Topic'] = $this->ReadPropertyString('DownlinkTopic');
+		$data['Payload'] = json_encode($payload, JSON_UNESCAPED_SLASHES);
+		$dataJSON = json_encode($data, JSON_UNESCAPED_SLASHES);
+
+		return $dataJSON;
+	}
+
+	function ProcessResult(int $value) : bool
+	{
+		swtich($value):
+		{
+			case 0:
+				$this->SendDebug('ProcessResult', 'Success from Gateway', 0);
+				$this->SetValue(self::LastCommandResponse, $this->Translate('Success'));
+				return true;
+			case 1:
+				$this->SendDebug('ProcessResult', 'Error from Gateway: Message format error (1)', 0);
+				$this->SetValue(self::LastCommandResponse, $this->Translate('Error from Gateway: Message format error (1)'));
+				return false;
+			case 2:
+				$this->SendDebug('ProcessResult', 'Error from Gateway: CMD message not supported (2)', 0);
+				$this->SetValue(self::LastCommandResponse, $this->Translate('Error from Gateway: CMD message not supported (2)'));
+				return false;
+			case 3:
+				$this->SendDebug('ProcessResult', 'Error from Gateway: Gateway ID not matched (3)', 0);
+				$this->SetValue(self::LastCommandResponse, $this->Translate('Error from Gateway: Gateway ID not matched (3)'));
+				return false;
+			case 4:
+				$this->SendDebug('ProcessResult', 'Error from Gateway: End device ID error (4)', 0);
+				$this->SetValue(self::LastCommandResponse, $this->Translate('Error from Gateway: End device ID error (4)'));
+				return false;
+			case 5:
+				$this->SendDebug('ProcessResult', 'Error from Gateway: End device ID not found (5)', 0);
+				$this->SetValue(self::LastCommandResponse, $this->Translate('Error from Gateway: End device ID not found (5)'));
+				return false;
+			case 6:
+				$this->SendDebug('ProcessResult', 'Error from Gateway: Gateway internal error (6)', 0);
+				$this->SetValue(self::LastCommandResponse, $this->Translate('Error from Gateway: Gateway internal error (6)'));
+				return false;
+			case 7:
+				$this->SendDebug('ProcessResult', 'Error from Gateway: Conflict with watering plan (7)', 0);
+				$this->SetValue(self::LastCommandResponse, $this->Translate('Error from Gateway: Conflict with watering plan (7)'));
+				return false;
+			case 8:
+				$this->SendDebug('ProcessResult', 'Error from Gateway: Gateway busy (8)', 0);
+				$this->SetValue(self::LastCommandResponse, $this->Translate('Error from Gateway: Gateway busy (8)'));
+				return false;
+			default:
+				return false;
+		}
 	}
 }
 
