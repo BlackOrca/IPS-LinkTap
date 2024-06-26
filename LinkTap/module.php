@@ -435,7 +435,7 @@ class LinkTap extends IPSModule
 	function ProcessResult(int $value) : bool
 	{
 		$result = false;
-		switch($value):
+		switch($value)
 		{
 			case 0:
 				$this->SendDebug('ProcessResult', 'Success from Gateway', 0);
