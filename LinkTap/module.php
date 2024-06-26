@@ -150,7 +150,9 @@ class LinkTap extends IPSModule
 		$this->SendDebug('DownlinkTopic', $this->ReadPropertyString('DownlinkTopic'), 0);
 		//$this->SendDebug('DownlinkReplyTopic', $this->ReadPropertyString('DownlinkReplyTopic'), 0);
 		
-		$filterResult = preg_quote('"Topic":"' . $this->ReadPropertyString('UplinkTopic') . '/' . $this->ReadPropertyString('LinkTapId'));	
+		$filterResult1 = preg_quote('"Topic":"' . $this->ReadPropertyString('UplinkTopic') . '/' . $this->ReadPropertyString('LinkTapId') . '"');
+		$filterResult2 = preq_quote('"Topic":"' . $this->ReadPropertyString('UplinkTopic') . '"');	
+		$filter = '.*' . $filterResult1 . '|' . $filterResult2 . '.*';
 		$this->SendDebug('ReceiveDataFilter', '.*' . $filterResult . '.*', 0);
 		$this->SetReceiveDataFilter('.*' . $filterResult . '.*');
 
@@ -352,11 +354,23 @@ class LinkTap extends IPSModule
 		$this->SetValue(self::GatewayId, $gatewayId);
 		$this->SetValue(self::IsRfLinked, $isRfLinked);
 		$this->SetValue(self::IsFlowMeasurementPlugedIn, $isFlowMeasurementPlugedIn);
+		
 		$this->SetValue(self::FallAlert, $fallAlert);
 		$this->SetValue(self::ValveShutdownFailureAlert, $valveShutdownFailureAlert);
 		$this->SetValue(self::WaterCutOffAlert, $waterCutOffAlert);
+		if($fallAlert || $valveShutdownFailureAlert || $waterCutOffAlert)
+		{
+			IPS_SetDisabled($this->GetIDForIdent(self::DismissAlert), false);
+		}
+		else
+		{
+			IPS_SetDisabled($this->GetIDForIdent(self::DismissAlert), true);
+		}
+
+
 		$this->SetValue(self::HighFlowAlert, $highFlowAlert);
 		$this->SetValue(self::LowFlowAlert, $lowFlowAlert);
+
 		$this->SetValue(self::SignalStrength, $signalStrength);
 		$this->SetValue(self::ChildLock, $childLock);
 
@@ -406,8 +420,8 @@ class LinkTap extends IPSModule
 		switch($payload['cmd'])
 		{
 			case 0: //Handshake
-				// if(array_key_exists('ver', $payload) || array_key_exists('end_dev', $payload))
-				// 	$this->AnswerHandshake($payload);
+				if(array_key_exists('ver', $payload) || array_key_exists('end_dev', $payload))
+					$this->AnswerHandshake($payload);
 				break;
 
 			case 3: //Status Update
