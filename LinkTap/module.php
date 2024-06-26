@@ -129,7 +129,7 @@ class LinkTap extends IPSModule
 
 	function UpdateStatus(array $payload) : bool
 	{
-		$this->SendDebug('Payload', 'Process Update Status Payload');
+		$this->SendDebug('Payload', 'Process Update Status Payload', 0);
 		$battery = $paylod['dev_stat']['battery'];
 		$gatewayId = $paylod['gw_id'];
 		$isRfLinked = $paylod['dev_stat']['is_rf_linked'];
