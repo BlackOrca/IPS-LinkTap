@@ -137,6 +137,8 @@ class LinkTap extends IPSModule
 			return false;
 		}
 
+		$this->SendDebug('Payload', print_r($payload), 0);
+
 		$desiredDevId = $this->ReadPropertyString('LinkTapId');
 		$devStats = $payload['dev_stat'];
 		$specificDevice = null;
