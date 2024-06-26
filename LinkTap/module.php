@@ -151,7 +151,7 @@ class LinkTap extends IPSModule
 		//$this->SendDebug('DownlinkReplyTopic', $this->ReadPropertyString('DownlinkReplyTopic'), 0);
 		
 		$filterResult1 = preg_quote('"Topic":"' . $this->ReadPropertyString('UplinkTopic') . '/' . $this->ReadPropertyString('LinkTapId') . '"');
-		$filterResult2 = preq_quote('"Topic":"' . $this->ReadPropertyString('UplinkTopic') . '"');	
+		$filterResult2 = preg_quote('"Topic":"' . $this->ReadPropertyString('UplinkTopic') . '"');	
 		$filter = '.*' . $filterResult1 . '|' . $filterResult2 . '.*';
 		$this->SendDebug('ReceiveDataFilter', '.*' . $filter . '.*', 0);
 		$this->SetReceiveDataFilter('.*' . $filter . '.*');
