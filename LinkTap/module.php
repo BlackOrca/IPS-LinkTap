@@ -65,7 +65,7 @@ class LinkTap extends IPSModule
 			IPS_SetVariableProfileAssociation('LINKTAP.IMMEDIATELY.SECONDS', 86340, $this->Translate('MaxWateringTime'), 'Drops', 0x0000FF);
 		}
 
-		if(!IPS_VariableExists('LINKTAP.WATERINGMODES'))
+		if(!IPS_VariableProfileExists('LINKTAP.WATERINGMODES'))
 		{
 			IPS_CreateVariableProfile('LINKTAP.WATERINGMODES', VARIABLETYPE_INTEGER);
 			IPS_SetVariableProfileIcon('LINKTAP.WATERINGMODES', 'Menu');
