@@ -22,6 +22,8 @@ class LinkTap extends IPSModule
 	const WateringActive = "WateringActive";
 	const EcoFinal = "EcoFinal";
 
+	const StopWatering = "StopWatering";
+
 	public function Create()
 	{
 		//Never delete this line!
@@ -32,6 +34,9 @@ class LinkTap extends IPSModule
 		$this->RegisterPropertyString('DownlinkTopic', '');
 		//$this->RegisterPropertyString('DownlinkReplyTopic', '');
 		$this->RegisterPropertyString('LinkTapId', '');
+
+		$this->RegisterVariableBoolean(self::StopWatering, $this->Translate(self::StopWatering), '~Switch', 10);
+		$this->EnableAction(self::StopWatering);
 
 
 		$this->RegisterVariableInteger(self::Battery, $this->Translate(self::Battery), '~Battery.100', 50);
@@ -94,6 +99,51 @@ class LinkTap extends IPSModule
 		}	
 		
 		$this->SetStatus(102);
+	}
+
+	public function RequestAction($Ident, $Value)
+	{
+		switch ($Ident) {
+			case self::StopWatering:
+				$this->StopWatering($Value);
+				break;
+			default:
+				$this->SendDebug('RequestAction', 'Unknown Ident: ' . $Ident, 0);
+				break;
+		}
+	}
+
+	public function StopWatering(bool $Value)
+	{		
+		$this->SendDebug('StopWatering', 'StopWatering', 0);
+
+		if($this->GetValue(self::GatewayId) == '' || $this->ReadPropertyString('LinkTapId') == '')
+		{
+			$this->SendDebug('StopWatering', 'GatewayId or LinkTapId not set!', 0);
+			return;
+		}
+
+		$this->SetValue(self::StopWatering, true);
+
+		$payload = [
+			'cmd' => 7,
+			'dev_id' => $this->ReadPropertyString('LinkTapId'),
+			'gw_id' => $this->GetValue(self::GatewayId)
+		];
+
+		$data['DataID'] = self::ModulToMqtt;
+		$data['PacketType'] = 3;
+		$data['QualityOfService'] = 0;
+		$data['Retain'] = false;
+		$data['Topic'] = $this->ReadPropertyString('DownlinkTopic');
+		$data['Payload'] = $payload;
+		$dataJSON = json_encode($data, JSON_UNESCAPED_SLASHES);
+
+		$this->SendDebug('StopWatering', 'Payload to LinkTap ' . $dataJSON, 0);
+
+		$this->SendDataToParent($dataJSON);
+
+		$this->SetValue(self::StopWatering, false);
 	}
 
 	public function ReceiveData($JSONString)

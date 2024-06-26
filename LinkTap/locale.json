@@ -17,7 +17,8 @@
             "ChildLock": "Kindersicherung",
             "ManualMode": "Manueller Modus",
             "WateringActive": "Bewässerung aktiv",
-            "EcoFinal": "Eco Final"
+            "EcoFinal": "Eco Final",
+            "StopWatering": "Bewässerung stoppen"
         }
     }
 }
