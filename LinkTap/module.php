@@ -129,21 +129,21 @@ class LinkTap extends IPSModule
 
 	function UpdateStatus(array $payload) : bool
 	{
-		$this->SendDebug('Payload', 'Process Update Status Payload', 0);
-		$battery = $paylod['dev_stat']['battery'];
-		$gatewayId = $paylod['gw_id'];
-		$isRfLinked = $paylod['dev_stat']['is_rf_linked'];
-		$isFlowMeasurementPlugedIn = $paylod['dev_stat']['is_flm_plugin'];
-		$fallAlert = $paylod['dev_stat']['is_fall'];
-		$valveShutdownFailureAlert = $paylod['dev_stat']['is_broken'];
-		$waterCutOffAlert = $paylod['dev_stat']['is_cutoff'];
-		$highFlowAlert = $paylod['dev_stat']['is_leak'];
-		$lowFlowAlert = $paylod['dev_stat']['is_clog'];
-		$signalStrength = $paylod['dev_stat']['signal'];
-		$childLock = $paylod['dev_stat']['child_lock'];
-		$manualMode = $paylod['dev_stat']['is_manual_mode'];
-		$wateringActive = $paylod['dev_stat']['is_watering'];
-		$ecoFinal = $paylod['dev_stat']['is_final'];
+		$this->SendDebug('Payload', 'Update Status Payload start', 0);
+		$battery = $payload['dev_stat']['battery'];
+		$gatewayId = $payload['gw_id'];
+		$isRfLinked = $payload['dev_stat']['is_rf_linked'];
+		$isFlowMeasurementPlugedIn = $payload['dev_stat']['is_flm_plugin'];
+		$fallAlert = $payload['dev_stat']['is_fall'];
+		$valveShutdownFailureAlert = $payload['dev_stat']['is_broken'];
+		$waterCutOffAlert = $payload['dev_stat']['is_cutoff'];
+		$highFlowAlert = $payload['dev_stat']['is_leak'];
+		$lowFlowAlert = $payload['dev_stat']['is_clog'];
+		$signalStrength = $payload['dev_stat']['signal'];
+		$childLock = $payload['dev_stat']['child_lock'];
+		$manualMode = $payload['dev_stat']['is_manual_mode'];
+		$wateringActive = $payload['dev_stat']['is_watering'];
+		$ecoFinal = $payload['dev_stat']['is_final'];
 		
 		$this->SetValue(self::Battery, $battery);
 		$this->SetValue(self::GatewayId, $gatewayId);
@@ -158,7 +158,9 @@ class LinkTap extends IPSModule
 		$this->SetValue(self::ChildLock, $childLock);
 		$this->SetValue(self::ManualMode, $manualMode);
 		$this->SetValue(self::WateringActive, $wateringActive);
-		$this->SetValue(self::EcoFinal, $ecoFinal);		
+		$this->SetValue(self::EcoFinal, $ecoFinal);
+
+		$this->SendDebug('Payload', 'Update Status Payload done', 0);
 		return true;
 	}
 }
