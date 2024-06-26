@@ -242,6 +242,14 @@ class LinkTap extends IPSModule
 		$this->SetValue(self::ChildLock, $childLock);
 		$this->SetValue(self::ManualMode, $manualMode);
 		$this->SetValue(self::WateringActive, $wateringActive);
+		if($wateringAcitve)
+		{
+			IPS_SetDisabled($this->GetIDForIdent(self::StopWatering), false);
+		}
+		else
+		{
+			IPS_SetDisabled($this->GetIDForIdent(self::StopWatering), true);
+		}
 		$this->SetValue(self::EcoFinal, $ecoFinal);
 
 		$this->SendDebug('Payload', 'Update Status Payload done', 0);
