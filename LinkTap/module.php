@@ -356,7 +356,7 @@ class LinkTap extends IPSModule
 		$this->SetValue(self::ActualWateringMode, $wateringMode);
 
 		$this->SetValue(self::TotalDuration, gmdate('H:i:s', $totalDuration));
-		$this->SetValue(self::RemainDuration, gmdate('H:i:s',$remainDuration));
+		$this->SetValue(self::RemainDuration, gmdate('H:i:s', $remainDuration));
 
 		$this->SetValue(self::Speed, $speed);
 		$this->SetValue(self::Volume, $volume);

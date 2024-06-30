@@ -19,7 +19,7 @@
             "WateringActive": "Bewässerung aktiv",
             "EcoFinal": "Eco Final",
             "TotalDuration": "Gesamtdauer",
-            "RemainingDuration": "Verbleibende Dauer",
+            "RemainDuration": "Verbleibende Dauer",
             "Speed": "Durchfluss",
             "Volume": "Abgabe",
             "VolumeLimit": "Abgabelimit",
