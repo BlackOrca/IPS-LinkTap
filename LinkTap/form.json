@@ -24,10 +24,10 @@
             "name": "MeasurementUnit", 
             "caption": "MeasurementUnit",
             "options": [
-            { "caption": "Liter", "value": 0 },
-            { "caption": "Galon", "value": 1 }
-        ]
-    }
+                { "caption": "Liter", "value": "Liter" },
+                { "caption": "Galon", "value": "Galon" }
+            ]
+        }
     ],
     "actions": [],
     "status": []
