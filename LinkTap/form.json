@@ -18,7 +18,16 @@
             "name": "DownlinkTopic",
             "caption": "Downlink Topic",
             "required": true
-        }
+        },
+        { 
+            "type": "Select", 
+            "name": "MeasurementUnit", 
+            "caption": "MeasurementUnit",
+            "options": [
+            { "caption": "Liter", "value": 0 },
+            { "caption": "Galon", "value": 1 }
+        ]
+    }
     ],
     "actions": [],
     "status": []

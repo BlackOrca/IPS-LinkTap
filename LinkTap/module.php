@@ -43,6 +43,7 @@ class LinkTap extends IPSModule
 		$this->RegisterPropertyString('DownlinkTopic', '');
 		//$this->RegisterPropertyString('DownlinkReplyTopic', '');
 		$this->RegisterPropertyString('LinkTapId', '');
+		$this->RegisterPropertyString('MeasurementUnit', 'Liter');
 
 		$this->RegisterVariableBoolean(self::StopWatering, $this->Translate(self::StopWatering), '~Switch', 10);
 		$this->EnableAction(self::StopWatering);
@@ -52,14 +53,12 @@ class LinkTap extends IPSModule
 
 		$this->RegisterVariableString(self::TotalDuration, $this->Translate(self::TotalDuration), '', 100); //seconds
 		$this->RegisterVariableString(self::RemainDuration, $this->Translate(self::RemainDuration), '', 110); //seconds
-
-		$this->RegisterVariableFloat(self::Speed, $this->Translate(self::Speed), '', 120); //x/min
-		$this->RegisterVariableFloat(self::Volume, $this->Translate(self::Volume), '', 130); //x
-		$this->RegisterVariableFloat(self::VolumeLimit, $this->Translate(self::VolumeLimit), '', 140); //x
+		
+		$this->RegisterWaterSpeed(120);
+		$this->RegisterVolumes(130, 140);
 
 		$this->RegisterVariableInteger(self::Battery, $this->Translate(self::Battery), '~Battery.100', 50);
 		$this->RegisterVariableInteger(self::SignalStrength, $this->Translate(self::SignalStrength), '~Intensity.100', 60);
-			
 
 		$this->RegisterVariableBoolean(self::WateringActive, $this->Translate(self::WateringActive), '~Switch', 200);
 		$this->RegisterChildLock(210);
@@ -359,6 +358,10 @@ class LinkTap extends IPSModule
 		$this->SetValue(self::TotalDuration, gmdate('H:i:s', $totalDuration));
 		$this->SetValue(self::RemainDuration, gmdate('H:i:s',$remainDuration));
 
+		$this->SetValue(self::Speed, $speed);
+		$this->SetValue(self::Volume, $volume);
+		$this->SetValue(self::VolumeLimit, $volumeLimit);
+
 		$this->SendDebug('Payload', 'Update Status Payload done', 0);
 		return true;
 	}
@@ -553,6 +556,31 @@ class LinkTap extends IPSModule
 	
 		$this->RegisterVariableInteger(self::ChildLock, $this->Translate(self::ChildLock), 'LINKTAP.LOCKS', $Position);
 
+	}
+
+	function RegisterVolumes(int $Position1, int $Postion2)
+	{
+		if(IPS_VariableProfileExists('LINKTAP.VOLUME'))
+			IPS_DeleteVariableProfile('LINKTAP.VOLUME');
+
+		IPS_CreateVariableProfile('LINKTAP.VOLUME', VARIABLETYPE_FLOAT);
+		IPS_SetVariableProfileIcon('LINKTAP.VOLUME', 'Drops');
+		IPS_SetVariableProfileText('LINKTAP.VOLUME', '', ' ' . $this->ReadPropertyString('MeasurementUnit'));
+				
+		$this->RegisterVariableFloat(self::Volume, $this->Translate(self::Volume), 'LINKTAP.VOLUME', $Position1); //x
+		$this->RegisterVariableFloat(self::VolumeLimit, $this->Translate(self::VolumeLimit), 'LINKTAP.VOLUME', $Postion2); //x
+	}
+
+	function RegisterWaterSpeed(int $Position)
+	{
+		if(IPS_VariableProfileExists('LINKTAP.SPEED'))
+			IPS_DeleteVariableProfile('LINKTAP.SPEED');
+
+		IPS_CreateVariableProfile('LINKTAP.SPEED', VARIABLETYPE_FLOAT);
+		IPS_SetVariableProfileIcon('LINKTAP.SPEED', 'Drops');
+		IPS_SetVariableProfileText('LINKTAP.SPEED', '', ' ' . $this->ReadPropertyString('MeasurementUnit') . '/min');
+
+		$this->RegisterVariableFloat(self::Speed, $this->Translate(self::Speed), 'LINKTAP.SPEED', $Position); //x/min
 	}
 
 }

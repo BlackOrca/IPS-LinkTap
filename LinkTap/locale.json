@@ -61,7 +61,10 @@
             "MonthMode": "Monatsmodus",
             "Unlocked": "Entsperrt",
             "PartiallyLocked": "Teilweise gesperrt",
-            "CompletelyLocked": "Vollständig gesperrt"
+            "CompletelyLocked": "Vollständig gesperrt",
+            "MeasurementUnit": "Messungseinheit",
+            "Liter": "Liter",
+            "Galon": "Galon"
         }
     }
 }
