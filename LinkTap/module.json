@@ -5,7 +5,8 @@
     "vendor": "LinkTap",
     "aliases": [
         "TapLinker",
-        "ValveLinker"
+        "ValveLinker",
+        "LinkTap"        
     ],
     "parentRequirements": [
         "{043EA491-0325-4ADD-8FC2-A30C8EEB4D3F}"
