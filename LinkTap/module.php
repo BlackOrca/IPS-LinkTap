@@ -21,6 +21,11 @@ class LinkTap extends IPSModule
 	const ManualMode = "ManualMode";
 	const WateringActive = "WateringActive";
 	const EcoFinal = "EcoFinal";
+	const TotalDuration = "TotalDuration";
+	const RemainDuration = "RemainDuration";
+	const Speed = "Speed";
+	const Volume = "Volume";
+	const VolumeLimit = "VolumeLimit";
 
 	const StopWatering = "StopWatering";
 	const StartWateringImmediately = "StartWateringImmediately";
@@ -42,77 +47,34 @@ class LinkTap extends IPSModule
 		$this->RegisterVariableBoolean(self::StopWatering, $this->Translate(self::StopWatering), '~Switch', 10);
 		$this->EnableAction(self::StopWatering);
 
-		if(!IPS_VariableProfileExists('LINKTAP.IMMEDIATELY.SECONDS'))
-		{
-			IPS_CreateVariableProfile('LINKTAP.IMMEDIATELY.SECONDS', VARIABLETYPE_INTEGER);
-			IPS_SetVariableProfileIcon('LINKTAP.IMMEDIATELY.SECONDS', 'Drops');
-			IPS_SetVariableProfileText('LINKTAP.IMMEDIATELY.SECONDS', '', '');
-			IPS_SetVariableProfileValues('LINKTAP.IMMEDIATELY.SECONDS', 2, 86340, 1);			
-			IPS_SetVariableProfileAssociation('LINKTAP.IMMEDIATELY.SECONDS', 2, $this->Translate('NoWatering'), '', -1);
-			IPS_SetVariableProfileAssociation('LINKTAP.IMMEDIATELY.SECONDS', 1800, $this->Translate('HalfHour'), 'Drops', 0x0000FF);
-			IPS_SetVariableProfileAssociation('LINKTAP.IMMEDIATELY.SECONDS', 3600, $this->Translate('OneHour'), 'Drops', 0x0000FF);
-			IPS_SetVariableProfileAssociation('LINKTAP.IMMEDIATELY.SECONDS', 7200, $this->Translate('TwoHours'), 'Drops', 0x0000FF);
-			IPS_SetVariableProfileAssociation('LINKTAP.IMMEDIATELY.SECONDS', 10800, $this->Translate('ThreeHours'), 'Drops', 0x0000FF);
-			IPS_SetVariableProfileAssociation('LINKTAP.IMMEDIATELY.SECONDS', 14400, $this->Translate('FourHours'), 'Drops', 0x0000FF);
-			IPS_SetVariableProfileAssociation('LINKTAP.IMMEDIATELY.SECONDS', 18000, $this->Translate('FiveHours'), 'Drops', 0x0000FF);
-			IPS_SetVariableProfileAssociation('LINKTAP.IMMEDIATELY.SECONDS', 21600, $this->Translate('SixHours'), 'Drops', 0x0000FF);
-			IPS_SetVariableProfileAssociation('LINKTAP.IMMEDIATELY.SECONDS', 25200, $this->Translate('EightHours'), 'Drops', 0x0000FF);
-			IPS_SetVariableProfileAssociation('LINKTAP.IMMEDIATELY.SECONDS', 36000, $this->Translate('TenHours'), 'Drops', 0x0000FF);
-			IPS_SetVariableProfileAssociation('LINKTAP.IMMEDIATELY.SECONDS', 43200, $this->Translate('TwelveHours'), 'Drops', 0x0000FF);
-			IPS_SetVariableProfileAssociation('LINKTAP.IMMEDIATELY.SECONDS', 50400, $this->Translate('FourteenHours'), 'Drops', 0x0000FF);
-			IPS_SetVariableProfileAssociation('LINKTAP.IMMEDIATELY.SECONDS', 64800, $this->Translate('EighteenHours'), 'Drops', 0x0000FF);
-			IPS_SetVariableProfileAssociation('LINKTAP.IMMEDIATELY.SECONDS', 82800, $this->Translate('TwentyThreeHours'), 'Drops', 0x0000FF);
-			IPS_SetVariableProfileAssociation('LINKTAP.IMMEDIATELY.SECONDS', 86340, $this->Translate('MaxWateringTime'), 'Drops', 0x0000FF);
-		}
+		$this->RegisterWateringModes(10);
+		$this->RegisterStartWateringImmediately(20);				
 
-		if(!IPS_VariableProfileExists('LINKTAP.WATERINGMODES'))
-		{
-			IPS_CreateVariableProfile('LINKTAP.WATERINGMODES', VARIABLETYPE_INTEGER);
-			IPS_SetVariableProfileIcon('LINKTAP.WATERINGMODES', 'Menu');
-			IPS_SetVariableProfileText('LINKTAP.WATERINGMODES', '', '');
-			IPS_SetVariableProfileValues('LINKTAP.WATERINGMODES', 1, 6, 1);			
-			IPS_SetVariableProfileAssociation('LINKTAP.WATERINGMODES', 1, $this->Translate('InstantMode'), '', -1);
-			IPS_SetVariableProfileAssociation('LINKTAP.WATERINGMODES', 2, $this->Translate('CalendarMode'), '', -1);
-			IPS_SetVariableProfileAssociation('LINKTAP.WATERINGMODES', 3, $this->Translate('SevenDayMode'), '', -1);
-			IPS_SetVariableProfileAssociation('LINKTAP.WATERINGMODES', 4, $this->Translate('OddEvenMode'), '', -1);
-			IPS_SetVariableProfileAssociation('LINKTAP.WATERINGMODES', 5, $this->Translate('IntervalMode'), '', -1);
-			IPS_SetVariableProfileAssociation('LINKTAP.WATERINGMODES', 6, $this->Translate('MonthMode'), '', -1);
-		}
+		$this->RegisterVariableString(self::TotalDuration, $this->Translate(self::TotalDuration), '', 100); //seconds
+		$this->RegisterVariableString(self::RemainDuration, $this->Translate(self::RemainDuration), '', 110); //seconds
 
-		if(!IPS_VariableProfileExists('LINKTAP.LOCKS'))
-		{
-			IPS_CreateVariableProfile('LINKTAP.LOCKS', VARIABLETYPE_INTEGER);
-			IPS_SetVariableProfileIcon('LINKTAP.LOCKS', 'Menu');
-			IPS_SetVariableProfileText('LINKTAP.LOCKS', '', '');
-			IPS_SetVariableProfileValues('LINKTAP.LOCKS', 0, 2, 1);			
-			IPS_SetVariableProfileAssociation('LINKTAP.LOCKS', 0, $this->Translate('Unlocked'), '', -1);
-			IPS_SetVariableProfileAssociation('LINKTAP.LOCKS', 1, $this->Translate('PartiallyLocked'), '', -1);
-			IPS_SetVariableProfileAssociation('LINKTAP.LOCKS', 2, $this->Translate('CompletelyLocked'), '', -1);
-		}
-
-		$this->RegisterVariableInteger(self::ActualWateringMode, $this->Translate(self::ActualWateringMode), 'LINKTAP.WATERINGMODES', 1);
-
-		$this->RegisterVariableInteger(self::StartWateringImmediately, $this->Translate(self::StartWateringImmediately), 'LINKTAP.IMMEDIATELY.SECONDS', 11);
-		$this->EnableAction(self::StartWateringImmediately);
+		$this->RegisterVariableFloat(self::Speed, $this->Translate(self::Speed), '', 120); //x/min
+		$this->RegisterVariableFloat(self::Volume, $this->Translate(self::Volume), '', 130); //x
+		$this->RegisterVariableFloat(self::VolumeLimit, $this->Translate(self::VolumeLimit), '', 140); //x
 
 		$this->RegisterVariableInteger(self::Battery, $this->Translate(self::Battery), '~Battery.100', 50);
-		$this->RegisterVariableInteger(self::SignalStrength, $this->Translate(self::SignalStrength), '~Intensity.100', 60);	
-		
-		$this->RegisterVariableBoolean(self::DismissAlert, $this->Translate(self::DismissAlert), '~Switch', 70);
+		$this->RegisterVariableInteger(self::SignalStrength, $this->Translate(self::SignalStrength), '~Intensity.100', 60);
+			
+
+		$this->RegisterVariableBoolean(self::WateringActive, $this->Translate(self::WateringActive), '~Switch', 200);
+		$this->RegisterChildLock(210);
+		$this->RegisterVariableBoolean(self::IsFlowMeasurementPlugedIn, $this->Translate(self::IsFlowMeasurementPlugedIn), '~Switch', 220);		
+		$this->RegisterVariableBoolean(self::ManualMode, $this->Translate(self::ManualMode), '~Switch', 230);
+		$this->RegisterVariableBoolean(self::IsRfLinked, $this->Translate(self::IsRfLinked), '~Switch', 240);	
+		$this->RegisterVariableBoolean(self::EcoFinal, $this->Translate(self::EcoFinal), '~Switch', 250);
+
+		$this->RegisterVariableBoolean(self::DismissAlert, $this->Translate(self::DismissAlert), '~Switch', 300);
 		$this->EnableAction(self::DismissAlert);
-
-		$this->RegisterVariableBoolean(self::WateringActive, $this->Translate(self::WateringActive), '~Switch', 100);			
-		$this->RegisterVariableBoolean(self::IsFlowMeasurementPlugedIn, $this->Translate(self::IsFlowMeasurementPlugedIn), '~Switch', 110);
-		$this->RegisterVariableInteger(self::ChildLock, $this->Translate(self::ChildLock), 'LINKTAP.LOCKS', 120);
-		$this->RegisterVariableBoolean(self::ManualMode, $this->Translate(self::ManualMode), '~Switch', 130);
-		$this->RegisterVariableBoolean(self::IsRfLinked, $this->Translate(self::IsRfLinked), '~Switch', 140);	
-		$this->RegisterVariableBoolean(self::EcoFinal, $this->Translate(self::EcoFinal), '~Switch', 150);
-
-		$this->RegisterVariableBoolean(self::FallAlert, $this->Translate(self::FallAlert), '~Alert', 200);
-		$this->RegisterVariableBoolean(self::ValveShutdownFailureAlert, $this->Translate(self::ValveShutdownFailureAlert), '~Alert', 210);
-		$this->RegisterVariableBoolean(self::WaterCutOffAlert, $this->Translate(self::WaterCutOffAlert), '~Alert', 220);
-		$this->RegisterVariableBoolean(self::HighFlowAlert, $this->Translate(self::HighFlowAlert), '~Alert', 230);
-		$this->RegisterVariableBoolean(self::LowFlowAlert, $this->Translate(self::LowFlowAlert), '~Alert', 240);
+		$this->RegisterVariableBoolean(self::FallAlert, $this->Translate(self::FallAlert), '~Alert', 310);
+		$this->RegisterVariableBoolean(self::ValveShutdownFailureAlert, $this->Translate(self::ValveShutdownFailureAlert), '~Alert', 320);
+		$this->RegisterVariableBoolean(self::WaterCutOffAlert, $this->Translate(self::WaterCutOffAlert), '~Alert', 330);
+		$this->RegisterVariableBoolean(self::HighFlowAlert, $this->Translate(self::HighFlowAlert), '~Alert', 340);
+		$this->RegisterVariableBoolean(self::LowFlowAlert, $this->Translate(self::LowFlowAlert), '~Alert', 350);
 
 		$this->RegisterVariableString(self::GatewayId, $this->Translate(self::GatewayId), '', 1000);
 		$this->RegisterVariableString(self::LastCommandResponse, $this->Translate(self::LastCommandResponse), '', 1001);
@@ -218,7 +180,7 @@ class LinkTap extends IPSModule
 			return;
 		}
 
-		if($Value <= 2)
+		if($Value == 2)
 		{
 			$this->SendDebug('StartWateringImmediately', 'Value is less then minimum of 3 seconds. Means in our case, we stop watering if watering is active.', 0);
 			$this->StopWatering(true);
@@ -349,6 +311,12 @@ class LinkTap extends IPSModule
 		$wateringActive = $specificDevice['is_watering'];
 		$ecoFinal = $specificDevice['is_final'];
 		$wateringMode = $specificDevice['plan_mode'];
+
+		$totalDuration = $specificDevice['total_duration'];
+		$remainDuration = $specificDevice['remain_duration'];
+		$speed = $specificDevice['speed'];
+		$volume = $specificDevice['volume'];
+		$volumeLimit = $specificDevice['volume_limit'];
 		
 		$this->SetValue(self::Battery, $battery);
 		$this->SetValue(self::GatewayId, $gatewayId);
@@ -383,10 +351,13 @@ class LinkTap extends IPSModule
 		else
 		{
 			IPS_SetDisabled($this->GetIDForIdent(self::StopWatering), true);
-			$this->SetValue(self::StartWateringImmediately, 2);
+			$this->SetValue(self::StartWateringImmediately, 0);
 		}
 		$this->SetValue(self::EcoFinal, $ecoFinal);
 		$this->SetValue(self::ActualWateringMode, $wateringMode);
+
+		$this->SetValue(self::TotalDuration, gmdate('H:i:s', $totalDuration));
+		$this->SetValue(self::RemainDuration, gmdate('H:i:s',$remainDuration));
 
 		$this->SendDebug('Payload', 'Update Status Payload done', 0);
 		return true;
@@ -517,6 +488,73 @@ class LinkTap extends IPSModule
 		}
 		return $result;
 	}
+
+	function RegisterStartWateringImmediately(int $Position)
+	{
+		if(IPS_VariableProfileExists('LINKTAP.IMMEDIATELY.SECONDS'))
+			IPS_DeleteVariableProfile('LINKTAP.IMMEDIATELY.SECONDS');
+		
+		IPS_CreateVariableProfile('LINKTAP.IMMEDIATELY.SECONDS', VARIABLETYPE_INTEGER);
+		IPS_SetVariableProfileIcon('LINKTAP.IMMEDIATELY.SECONDS', 'Drops');
+		IPS_SetVariableProfileText('LINKTAP.IMMEDIATELY.SECONDS', '', '');
+		IPS_SetVariableProfileValues('LINKTAP.IMMEDIATELY.SECONDS', 2, 86340, 1);
+		IPS_SetVariableProfileAssociation('LINKTAP.IMMEDIATELY.SECONDS', 0, $this->Translate('ChosseAOption'), '', -1);	
+		IPS_SetVariableProfileAssociation('LINKTAP.IMMEDIATELY.SECONDS', 2, $this->Translate('NoWatering'), '', -1);
+		IPS_SetVariableProfileAssociation('LINKTAP.IMMEDIATELY.SECONDS', 1800, $this->Translate('HalfHour'), 'Drops', 0x0000FF);
+		IPS_SetVariableProfileAssociation('LINKTAP.IMMEDIATELY.SECONDS', 3600, $this->Translate('OneHour'), 'Drops', 0x0000FF);
+		IPS_SetVariableProfileAssociation('LINKTAP.IMMEDIATELY.SECONDS', 7200, $this->Translate('TwoHours'), 'Drops', 0x0000FF);
+		IPS_SetVariableProfileAssociation('LINKTAP.IMMEDIATELY.SECONDS', 10800, $this->Translate('ThreeHours'), 'Drops', 0x0000FF);
+		IPS_SetVariableProfileAssociation('LINKTAP.IMMEDIATELY.SECONDS', 14400, $this->Translate('FourHours'), 'Drops', 0x0000FF);
+		IPS_SetVariableProfileAssociation('LINKTAP.IMMEDIATELY.SECONDS', 18000, $this->Translate('FiveHours'), 'Drops', 0x0000FF);
+		IPS_SetVariableProfileAssociation('LINKTAP.IMMEDIATELY.SECONDS', 21600, $this->Translate('SixHours'), 'Drops', 0x0000FF);
+		IPS_SetVariableProfileAssociation('LINKTAP.IMMEDIATELY.SECONDS', 25200, $this->Translate('EightHours'), 'Drops', 0x0000FF);
+		IPS_SetVariableProfileAssociation('LINKTAP.IMMEDIATELY.SECONDS', 36000, $this->Translate('TenHours'), 'Drops', 0x0000FF);
+		IPS_SetVariableProfileAssociation('LINKTAP.IMMEDIATELY.SECONDS', 43200, $this->Translate('TwelveHours'), 'Drops', 0x0000FF);
+		IPS_SetVariableProfileAssociation('LINKTAP.IMMEDIATELY.SECONDS', 50400, $this->Translate('FourteenHours'), 'Drops', 0x0000FF);
+		IPS_SetVariableProfileAssociation('LINKTAP.IMMEDIATELY.SECONDS', 64800, $this->Translate('EighteenHours'), 'Drops', 0x0000FF);
+		IPS_SetVariableProfileAssociation('LINKTAP.IMMEDIATELY.SECONDS', 82800, $this->Translate('TwentyThreeHours'), 'Drops', 0x0000FF);
+		IPS_SetVariableProfileAssociation('LINKTAP.IMMEDIATELY.SECONDS', 86340, $this->Translate('MaxWateringTime'), 'Drops', 0x0000FF);
+		
+		$this->RegisterVariableInteger(self::StartWateringImmediately, $this->Translate(self::StartWateringImmediately), 'LINKTAP.IMMEDIATELY.SECONDS', $Position);
+		$this->EnableAction(self::StartWateringImmediately);
+	}
+
+	function RegisterWateringModes(int $Position)
+	{
+		if(IPS_VariableProfileExists('LINKTAP.WATERINGMODES'))
+			IPS_DeleteVariableProfile('LINKTAP.WATERINGMODES');
+
+		IPS_CreateVariableProfile('LINKTAP.WATERINGMODES', VARIABLETYPE_INTEGER);
+		IPS_SetVariableProfileIcon('LINKTAP.WATERINGMODES', 'Menu');
+		IPS_SetVariableProfileText('LINKTAP.WATERINGMODES', '', '');
+		IPS_SetVariableProfileValues('LINKTAP.WATERINGMODES', 1, 6, 1);			
+		IPS_SetVariableProfileAssociation('LINKTAP.WATERINGMODES', 1, $this->Translate('InstantMode'), '', -1);
+		IPS_SetVariableProfileAssociation('LINKTAP.WATERINGMODES', 2, $this->Translate('CalendarMode'), '', -1);
+		IPS_SetVariableProfileAssociation('LINKTAP.WATERINGMODES', 3, $this->Translate('SevenDayMode'), '', -1);
+		IPS_SetVariableProfileAssociation('LINKTAP.WATERINGMODES', 4, $this->Translate('OddEvenMode'), '', -1);
+		IPS_SetVariableProfileAssociation('LINKTAP.WATERINGMODES', 5, $this->Translate('IntervalMode'), '', -1);
+		IPS_SetVariableProfileAssociation('LINKTAP.WATERINGMODES', 6, $this->Translate('MonthMode'), '', -1);
+	
+		$this->RegisterVariableInteger(self::ActualWateringMode, $this->Translate(self::ActualWateringMode), 'LINKTAP.WATERINGMODES', $Position);
+	}
+
+	function RegisterChildLock(int $Position)
+	{
+		if(IPS_VariableProfileExists('LINKTAP.LOCKS'))
+			IPS_DeleteVariableProfile('LINKTAP.LOCKS');
+
+		IPS_CreateVariableProfile('LINKTAP.LOCKS', VARIABLETYPE_INTEGER);
+		IPS_SetVariableProfileIcon('LINKTAP.LOCKS', 'Menu');
+		IPS_SetVariableProfileText('LINKTAP.LOCKS', '', '');
+		IPS_SetVariableProfileValues('LINKTAP.LOCKS', 0, 2, 1);			
+		IPS_SetVariableProfileAssociation('LINKTAP.LOCKS', 0, $this->Translate('Unlocked'), '', -1);
+		IPS_SetVariableProfileAssociation('LINKTAP.LOCKS', 1, $this->Translate('PartiallyLocked'), '', -1);
+		IPS_SetVariableProfileAssociation('LINKTAP.LOCKS', 2, $this->Translate('CompletelyLocked'), '', -1);
+	
+		$this->RegisterVariableInteger(self::ChildLock, $this->Translate(self::ChildLock), 'LINKTAP.LOCKS', $Position);
+
+	}
+
 }
 
 	/*
