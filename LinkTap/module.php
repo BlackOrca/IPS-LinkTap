@@ -417,39 +417,39 @@ class LinkTap extends IPSModule
 		{
 			case 0:
 				$this->SendDebug('Result Processor', 'Success from Gateway', 0);
-				$this->SetValue(self::LastCommandResponse, GetAnswerToString($this->Translate('Success'), $payload['cmd']));
+				$this->SetValue(self::LastCommandResponse, GetAnswerToString('Success', $payload['cmd']));
 				break;
 			case 1:
 				$this->SendDebug('Result Processor', 'Error from Gateway: Message format error (1)', 0);
-				$this->SetValue(self::LastCommandResponse, GetAnswerToString($this->Translate('Error from Gateway: Message format error (1)'), $payload['cmd']));
+				$this->SetValue(self::LastCommandResponse, GetAnswerToString('Error from Gateway: Message format error (1)', $payload['cmd']));
 				break;
 			case 2:
 				$this->SendDebug('Result Processor', 'Error from Gateway: CMD message not supported (2)', 0);
-				$this->SetValue(self::LastCommandResponse, GetAnswerToString($this->Translate('Error from Gateway: CMD message not supported (2)'), $payload['cmd']));
+				$this->SetValue(self::LastCommandResponse, GetAnswerToString('Error from Gateway: CMD message not supported (2)', $payload['cmd']));
 				break;
 			case 3:
 				$this->SendDebug('Result Processor', 'Error from Gateway: Gateway ID not matched (3)', 0);
-				$this->SetValue(self::LastCommandResponse, GetAnswerToString($this->Translate('Error from Gateway: Gateway ID not matched (3)'), $payload['cmd']));
+				$this->SetValue(self::LastCommandResponse, GetAnswerToString('Error from Gateway: Gateway ID not matched (3)', $payload['cmd']));
 				break;
 			case 4:
 				$this->SendDebug('Result Processor', 'Error from Gateway: End device ID error (4)', 0);
-				$this->SetValue(self::LastCommandResponse, GetAnswerToString($this->Translate('Error from Gateway: End device ID error (4)'), $payload['cmd']));
+				$this->SetValue(self::LastCommandResponse, GetAnswerToString('Error from Gateway: End device ID error (4)', $payload['cmd']));
 				break;
 			case 5:
 				$this->SendDebug('Result Processor', 'Error from Gateway: End device ID not found (5)', 0);
-				$this->SetValue(self::LastCommandResponse, GetAnswerToString($this->Translate('Error from Gateway: End device ID not found (5)'), $payload['cmd']));
+				$this->SetValue(self::LastCommandResponse, GetAnswerToString('Error from Gateway: End device ID not found (5)', $payload['cmd']));
 				break;
 			case 6:
 				$this->SendDebug('Result Processor', 'Error from Gateway: Gateway internal error (6)', 0);
-				$this->SetValue(self::LastCommandResponse, GetAnswerToString($this->Translate('Error from Gateway: Gateway internal error (6)'), $payload['cmd']));
+				$this->SetValue(self::LastCommandResponse, GetAnswerToString('Error from Gateway: Gateway internal error (6)', $payload['cmd']));
 				break;
 			case 7:
 				$this->SendDebug('Result Processor', 'Error from Gateway: Conflict with watering plan (7)', 0);
-				$this->SetValue(self::LastCommandResponse, GetAnswerToString($this->Translate('Error from Gateway: Conflict with watering plan (7)'), $payload['cmd']));
+				$this->SetValue(self::LastCommandResponse, GetAnswerToString('Error from Gateway: Conflict with watering plan (7)', $payload['cmd']));
 				break;
 			case 8:
 				$this->SendDebug('Result Processor', 'Error from Gateway: Gateway busy (8)', 0);
-				$this->SetValue(self::LastCommandResponse, GetAnswerToString($this->Translate('Error from Gateway: Gateway busy (8)'), $payload['cmd']));
+				$this->SetValue(self::LastCommandResponse, GetAnswerToString('Error from Gateway: Gateway busy (8)', $payload['cmd']));
 				break;
 			default:
 				break;
@@ -458,7 +458,7 @@ class LinkTap extends IPSModule
 
 	function GetAnswerToString($errorMessage, $cmd)
 	{
-		return $this->GetCommand($cmd) . ' -> ' $errorMessage;
+		return $this->Translate($this->GetCommand($cmd)) . ' -> ' $this->Translate($errorMessage);
 	}
 
 	function GetCommand($cmd)
@@ -466,37 +466,37 @@ class LinkTap extends IPSModule
 		switch($cmd)
 		{
 			case 0:
-				return $this->Translate('Handshake');
+				return 'Handshake';
 			case 1:
-				return $this->Translate('Add End Device');
+				return 'Add End Device';
 			case 2:
-				return $this->Translate('Remove End Device');
+				return 'Remove End Device';
 			case 3:
-				return $this->Translate('Status Update');
+				return 'Status Update';
 			case 4:
-				return $this->Translate('Add Watering plan');
+				return 'Add Watering plan';
 			case 5:
-				return $this->Translate('Remove Watering plan');
+				return 'Remove Watering plan';
 			case 6:
-				return $this->Translate('Start Watering Immediately');
+				return 'Start Watering Immediately';
 			case 7:
-				return $this->Translate('Stop Watering Immediately');
+				return 'Stop Watering Immediately';
 			case 8:
-				return $this->Translate('Fetch/Push rainfall data');
+				return 'Fetch/Push rainfall data';
 			case 9:
-				return $this->Translate('Watering skipped notification');
+				return 'Watering skipped notification';
 			case 10:
-				return $this->Translate('Enable/Disable Alert');			
+				return 'Enable/Disable Alert';			
 			case 11:
-				return $this->Translate('Dismiss Alert');
+				return 'Dismiss Alert';
 			case 12:
-				return $this->Translate('Setup lockout state On/Off button');
+				return 'Setup lockout state On/Off button';
 			case 13:
-				return $this->Translate('Gatway send his time');
+				return 'Gatway send his time';
 			case 14:
-				return $this->Translate('Fetch Gateway time');
+				return 'Fetch Gateway time';
 			case 15:
-				return $this->Translate('Test wireless performance');
+				return 'Test wireless performance';
 			default:
 				return 'Unknown';
 		}
