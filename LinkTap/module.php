@@ -458,7 +458,7 @@ class LinkTap extends IPSModule
 
 	function GetAnswerToString($errorMessage, $cmd)
 	{
-		return $this->Translate($this->GetCommand($cmd)) . ' -> ' $this->Translate($errorMessage);
+		return $this->Translate($this->GetCommand($cmd)) . ' -> ' . $this->Translate($errorMessage);
 	}
 
 	function GetCommand($cmd)
