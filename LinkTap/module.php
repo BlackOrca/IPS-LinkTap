@@ -552,7 +552,7 @@ class LinkTap extends IPSModule
 		IPS_SetVariableProfileAssociation('LINKTAP.IMMEDIATELY.SECONDS', 240, $this->Translate('FourMinute'), 'Drops', 0x0000FF);
 		IPS_SetVariableProfileAssociation('LINKTAP.IMMEDIATELY.SECONDS', 300, $this->Translate('FiveMinute'), 'Drops', 0x0000FF);
 		IPS_SetVariableProfileAssociation('LINKTAP.IMMEDIATELY.SECONDS', 600, $this->Translate('TenMinute'), 'Drops', 0x0000FF);
-		IPS_SetVariableProfileAssociation('LINKTAP.IMMEDIATELY.SECONDS', 900, $this->Translate('FivteenMinute'), 'Drops', 0x0000FF);
+		IPS_SetVariableProfileAssociation('LINKTAP.IMMEDIATELY.SECONDS', 900, $this->Translate('FifteenMinute'), 'Drops', 0x0000FF);
 		IPS_SetVariableProfileAssociation('LINKTAP.IMMEDIATELY.SECONDS', 1800, $this->Translate('HalfHour'), 'Drops', 0x0000FF);
 		IPS_SetVariableProfileAssociation('LINKTAP.IMMEDIATELY.SECONDS', 3600, $this->Translate('OneHour'), 'Drops', 0x0000FF);
 		IPS_SetVariableProfileAssociation('LINKTAP.IMMEDIATELY.SECONDS', 7200, $this->Translate('TwoHours'), 'Drops', 0x0000FF);
