@@ -456,12 +456,12 @@ class LinkTap extends IPSModule
 		}
 	}
 
-	function GetAnswerToString($errorMessage, $cmd)
+	function GetAnswerToString(string $errorMessage, int $cmd) : string
 	{
 		return $this->Translate($this->GetCommand($cmd)) . ' -> ' . $this->Translate($errorMessage);
 	}
 
-	function GetCommand($cmd)
+	function GetCommand(int $cmd) : string
 	{
 		switch($cmd)
 		{
