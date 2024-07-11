@@ -96,7 +96,7 @@ class LinkTap extends IPSModule
 		$this->SetReceiveDataFilter($filter);
 
 		if ($this->HasActiveParent() && IPS_GetKernelRunlevel() == KR_READY) {
-			$this->RequestData($_IPS['TARGET']);
+			$this->RequestStatus($_IPS['TARGET']);
 		}
 
 		$interval = $this->ReadPropertyInteger(self::RequestInterval) * 1000;
