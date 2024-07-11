@@ -14,6 +14,9 @@ class LinkTap extends IPSModule
 	const DownlinkTopic = "DownlinkTopic";
 	const DownlinkReplyTopic = "DownlinkReplyTopic";
 
+	const RequestInterval = "RequestInterval";
+	const RequestTimer = "RequestTimer";
+
 	const MeasurementUnit = "MeasurementUnit";
 
 	const Battery = "Battery";
@@ -54,9 +57,9 @@ class LinkTap extends IPSModule
 		$this->RegisterPropertyString(self::LinkTapId, '');
 		$this->RegisterPropertyString(self::MeasurementUnit, 'Liter');
 
-		$this->RegisterPropertyInteger('RequestInterval', 5);
+		$this->RegisterPropertyInteger(self::RequestInterval, 5);
 
-		$this->RegisterTimer('RequestTimer', 0, 'LT_RequestData($_IPS[\'TARGET\']);');
+		$this->RegisterTimer(self::RequestTimer, 0, 'LT_RequestStatus($_IPS[\'TARGET\']);');
 
 		$this->RegisterVariables();		
 
@@ -86,7 +89,6 @@ class LinkTap extends IPSModule
 		$this->SendDebug(self::DownlinkReplyTopic, $this->ReadPropertyString(self::DownlinkReplyTopic), 0);
 		
 		$filterResult1 = preg_quote('"Topic":"' . $this->ReadPropertyString(self::UplinkTopic) . '/' . $this->ReadPropertyString(self::LinkTapId) . '"');
-		//$filterResult2 = preg_quote('"Topic":"' . $this->ReadPropertyString(self::UplinkTopic) . '"');	
 		$filterResult2 = preg_quote('"Topic":"' . $this->ReadPropertyString(self::DownlinkReplyTopic) . '"');
 
 		$filter = '.*(' . $filterResult1 . '|' . $filterResult2 . ').*';
@@ -97,10 +99,34 @@ class LinkTap extends IPSModule
 			$this->RequestData($_IPS['TARGET']);
 		}
 
-		$interval = $this->ReadPropertyInteger('RequestInterval') * 1000;
-		$this->SetTimerInterval('RequestTimer', $interval);
+		$interval = $this->ReadPropertyInteger(self::RequestInterval) * 1000;
+		$this->SetTimerInterval(self::RequestTimer, $interval);
 		
 		$this->SetStatus(102);
+	}
+
+	public function ReceiveData($JSONString)
+	{		
+		if($this->IsBasicSettingsAnyMissing())
+			return;
+
+		$this->SendDebug('Received Data from Parent', $JSONString, 0);
+
+		$data = json_decode($JSONString, true);
+
+		$payload = json_decode($data['Payload'], true);
+		
+		if($data['Topic'] == $this->ReadPropertyString(self::DownlinkReplyTopic))
+		{
+			$this->SendDebug('Received Answer from LinkTap', $JSONString, 0);
+			$this->ProcessResult($payload);
+		}
+		else if($data['Topic'] == $this->ReadPropertyString(self::UplinkTopic) || 
+				$data['Topic'] == $this->ReadPropertyString(self::UplinkTopic) . '/' . $this->ReadPropertyString(self::LinkTapId))
+		{
+			$this->SendDebug('Received Data from LinkTap', $JSONString, 0);
+			$this->ProcessPayload($payload);	
+		}		
 	}
 
 	public function RequestAction($Ident, $Value)
@@ -120,12 +146,12 @@ class LinkTap extends IPSModule
 		}
 	}
 
-	public function RequestData()
+	public function RequestStatus()
 	{
 		if($this->IsBasicSettingsAnyMissing())
 			return;		
 
-		$this->SendDebug('RequestData', 'Send Status Request to LinkTap Gateway', 0);
+		$this->SendDebug('RequestStatus', 'Send Status Request to LinkTap Gateway', 0);
 
 		$payload = [
 			'cmd' => 3,
@@ -136,6 +162,95 @@ class LinkTap extends IPSModule
 		$dataJSON = $this->GetPackageForDownlink($payload);
 
 		$this->SendDataToParent($dataJSON);
+	}
+
+	function ProcessPayload(array $payload)
+	{
+		$this->SendDebug('Payload Processor', 'Payload Command ' . $payload['cmd'], 0);
+
+		switch($payload['cmd'])
+		{
+			//TODO
+			case 0: //Handshake
+				// if(array_key_exists('ver', $payload) || array_key_exists('end_dev', $payload))
+				// 	$this->AnswerHandshake($payload);
+				break;
+
+			case 3: //Status Update
+				$this->UpdateStatus($payload);
+				break;
+
+			case 8:
+				//Fetch Rainfall Data
+				break;
+			
+			case 9:
+				//Watering Skipped
+				break;
+
+			case 13:
+				//Gateway will sync time
+				break;
+
+			default:
+				//$this->SendDebug('ReceiveData', 'Unknown cmd: ' . $paylod['cmd'], 0);
+				break;
+		}		
+	}
+
+	function ProcessResult(array $payload)
+	{
+		if($payload['gw_id'] != $this->GetValue(self::GatewayId))
+		{
+			return;
+		}
+
+		if(array_key_exists('dev_id', $payload) && $payload['dev_id'] != $this->ReadPropertyString(self::LinkTapId))
+		{
+			return;
+		}
+
+		switch($payload['ret'])
+		{
+			case 0:
+				$this->SendDebug('Result Processor', 'Success from Gateway', 0);
+				$this->SetValue(self::LastCommandResponse, $this->GetAnswerToString('Success', $payload['cmd']));
+				break;
+			case 1:
+				$this->SendDebug('Result Processor', 'Error from Gateway: Message format error (1)', 0);
+				$this->SetValue(self::LastCommandResponse, $this->GetAnswerToString('Error from Gateway: Message format error (1)', $payload['cmd']));
+				break;
+			case 2:
+				$this->SendDebug('Result Processor', 'Error from Gateway: CMD message not supported (2)', 0);
+				$this->SetValue(self::LastCommandResponse, $this->GetAnswerToString('Error from Gateway: CMD message not supported (2)', $payload['cmd']));
+				break;
+			case 3:
+				$this->SendDebug('Result Processor', 'Error from Gateway: Gateway ID not matched (3)', 0);
+				$this->SetValue(self::LastCommandResponse, $this->GetAnswerToString('Error from Gateway: Gateway ID not matched (3)', $payload['cmd']));
+				break;
+			case 4:
+				$this->SendDebug('Result Processor', 'Error from Gateway: End device ID error (4)', 0);
+				$this->SetValue(self::LastCommandResponse, $this->GetAnswerToString('Error from Gateway: End device ID error (4)', $payload['cmd']));
+				break;
+			case 5:
+				$this->SendDebug('Result Processor', 'Error from Gateway: End device ID not found (5)', 0);
+				$this->SetValue(self::LastCommandResponse, $this->GetAnswerToString('Error from Gateway: End device ID not found (5)', $payload['cmd']));
+				break;
+			case 6:
+				$this->SendDebug('Result Processor', 'Error from Gateway: Gateway internal error (6)', 0);
+				$this->SetValue(self::LastCommandResponse, $this->GetAnswerToString('Error from Gateway: Gateway internal error (6)', $payload['cmd']));
+				break;
+			case 7:
+				$this->SendDebug('Result Processor', 'Error from Gateway: Conflict with watering plan (7)', 0);
+				$this->SetValue(self::LastCommandResponse, $this->GetAnswerToString('Error from Gateway: Conflict with watering plan (7)', $payload['cmd']));
+				break;
+			case 8:
+				$this->SendDebug('Result Processor', 'Error from Gateway: Gateway busy (8)', 0);
+				$this->SetValue(self::LastCommandResponse, $this->GetAnswerToString('Error from Gateway: Gateway busy (8)', $payload['cmd']));
+				break;
+			default:
+				break;
+		}
 	}
 
 	function DismissAlert(bool $Value)
@@ -210,6 +325,7 @@ class LinkTap extends IPSModule
 		$this->SetValue(self::StopWatering, false);
 	}
 	
+	//TODO
 	function AnswerHandshake(array $payload)
 	{
 		if($this->IsBasicSettingsAnyMissing())
@@ -341,122 +457,8 @@ class LinkTap extends IPSModule
 
 		$this->SendDebug('Payload', 'Update Status Payload done', 0);
 		return true;
-	}
-
-	public function ReceiveData($JSONString)
-	{		
-		if($this->IsBasicSettingsAnyMissing())
-			return;
-
-		$this->SendDebug('Received Data from Parent', $JSONString, 0);
-
-		$data = json_decode($JSONString, true);
-
-		$payload = json_decode($data['Payload'], true);
-		
-		if($data['Topic'] == $this->ReadPropertyString(self::DownlinkReplyTopic))
-		{
-			$this->SendDebug('Received Answer from LinkTap', $JSONString, 0);
-			$this->ProcessResult($payload);
-		}
-		else if($data['Topic'] == $this->ReadPropertyString(self::UplinkTopic) || 
-				$data['Topic'] == $this->ReadPropertyString(self::UplinkTopic) . '/' . $this->ReadPropertyString(self::LinkTapId))
-		{
-			$this->SendDebug('Received Data from LinkTap', $JSONString, 0);
-			$this->ProcessPayload($payload);	
-		}		
-	}
-
-	function ProcessPayload(array $payload)
-	{
-		$this->SendDebug('Payload Processor', 'Payload Command ' . $payload['cmd'], 0);
-
-		switch($payload['cmd'])
-		{
-			case 0: //Handshake
-				// if(array_key_exists('ver', $payload) || array_key_exists('end_dev', $payload))
-				// 	$this->AnswerHandshake($payload);
-				break;
-
-			case 3: //Status Update
-				$this->UpdateStatus($payload);
-				break;
-
-			case 6: //Start Watering Immediately
-				// if($this->ProcessResult($payload['ret']))
-				//$this->SetValue(self::WateringActive, true);				
-				break;
-
-			case 7: //Stop Watering
-				// if($this->ProcessResult($payload['ret']))
-				//$this->SetValue(self::WateringActive, false);				
-				break;
-
-			case 11: //Dismiss Alert
-				//$this->ProcessResult($payload['ret']);
-				break;
-
-			default:
-				//$this->SendDebug('ReceiveData', 'Unknown cmd: ' . $paylod['cmd'], 0);
-				break;
-		}		
-	}
-
-	function ProcessResult(array $payload)
-	{
-		if($payload['gw_id'] != $this->GetValue(self::GatewayId))
-		{
-			return;
-		}
-
-		if(array_key_exists('dev_id', $payload) && $payload['dev_id'] != $this->ReadPropertyString(self::LinkTapId))
-		{
-			return;
-		}
-
-		switch($payload['ret'])
-		{
-			case 0:
-				$this->SendDebug('Result Processor', 'Success from Gateway', 0);
-				$this->SetValue(self::LastCommandResponse, $this->GetAnswerToString('Success', $payload['cmd']));
-				break;
-			case 1:
-				$this->SendDebug('Result Processor', 'Error from Gateway: Message format error (1)', 0);
-				$this->SetValue(self::LastCommandResponse, $this->GetAnswerToString('Error from Gateway: Message format error (1)', $payload['cmd']));
-				break;
-			case 2:
-				$this->SendDebug('Result Processor', 'Error from Gateway: CMD message not supported (2)', 0);
-				$this->SetValue(self::LastCommandResponse, $this->GetAnswerToString('Error from Gateway: CMD message not supported (2)', $payload['cmd']));
-				break;
-			case 3:
-				$this->SendDebug('Result Processor', 'Error from Gateway: Gateway ID not matched (3)', 0);
-				$this->SetValue(self::LastCommandResponse, $this->GetAnswerToString('Error from Gateway: Gateway ID not matched (3)', $payload['cmd']));
-				break;
-			case 4:
-				$this->SendDebug('Result Processor', 'Error from Gateway: End device ID error (4)', 0);
-				$this->SetValue(self::LastCommandResponse, $this->GetAnswerToString('Error from Gateway: End device ID error (4)', $payload['cmd']));
-				break;
-			case 5:
-				$this->SendDebug('Result Processor', 'Error from Gateway: End device ID not found (5)', 0);
-				$this->SetValue(self::LastCommandResponse, $this->GetAnswerToString('Error from Gateway: End device ID not found (5)', $payload['cmd']));
-				break;
-			case 6:
-				$this->SendDebug('Result Processor', 'Error from Gateway: Gateway internal error (6)', 0);
-				$this->SetValue(self::LastCommandResponse, $this->GetAnswerToString('Error from Gateway: Gateway internal error (6)', $payload['cmd']));
-				break;
-			case 7:
-				$this->SendDebug('Result Processor', 'Error from Gateway: Conflict with watering plan (7)', 0);
-				$this->SetValue(self::LastCommandResponse, $this->GetAnswerToString('Error from Gateway: Conflict with watering plan (7)', $payload['cmd']));
-				break;
-			case 8:
-				$this->SendDebug('Result Processor', 'Error from Gateway: Gateway busy (8)', 0);
-				$this->SetValue(self::LastCommandResponse, $this->GetAnswerToString('Error from Gateway: Gateway busy (8)', $payload['cmd']));
-				break;
-			default:
-				break;
-		}
-	}
-
+	}	
+	
 	function GetAnswerToString(string $errorMessage, int $cmd) : string
 	{
 		return $this->Translate($this->GetCommand($cmd)) . ' -> ' . $this->Translate($errorMessage);
@@ -684,36 +686,4 @@ class LinkTap extends IPSModule
 
 		$this->RegisterVariableFloat(self::Speed, $this->Translate(self::Speed), 'LINKTAP.SPEED', $Position); //x/min
 	}
-
 }
-
-	/*
- 	{
-		"cmd":3,
-		"gw_id":"gatewayid",
-		"dev_stat":{
-			"dev_id":"taplinkid",
-			"plan_mode":1,
-			"plan_sn":0,
-			"is_rf_linked":true,
-			"is_flm_plugin":true,
-			"is_fall":false,
-			"is_broken":false,
-			"is_cutoff":false,
-			"is_leak":false,
-			"is_clog":false,
-			"signal":83,
-			"battery":90,
-			"child_lock":0,
-			"is_manual_mode":false,
-			"is_watering":false,
-			"is_final":true,
-			"total_duration":0,
-			"remain_duration":0,
-			"speed":0.00,
-			"volume":30.30,
-			"volume_limit":0.00,
-			"failsafe_duration":0
-		}
-	}
-	*/
