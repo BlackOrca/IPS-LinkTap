@@ -27,6 +27,12 @@
                 { "caption": "Liter", "value": "Liter" },
                 { "caption": "Galon", "value": "Galon" }
             ]
+        },
+        {
+            "type": "NumberSpinner",
+            "name": "RequestInterval",
+            "caption": "Request interval in seconds",
+            "value": 10
         }
     ],
     "actions": [

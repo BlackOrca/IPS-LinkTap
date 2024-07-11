@@ -71,7 +71,8 @@
             "CompletelyLocked": "Vollständig gesperrt",
             "MeasurementUnit": "Messungseinheit",
             "Liter": "Liter",
-            "Galon": "Galon"
+            "Galon": "Galon",
+            "Request interval in seconds": "Anforderungsintervall in seconds"
         }
     }
 }

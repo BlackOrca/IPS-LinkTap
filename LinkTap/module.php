@@ -6,6 +6,11 @@ class LinkTap extends IPSModule
 	const MqttParent = "{C6D2AEB3-6E1F-4B2E-8E69-3A1A00246850}";
 	const ModulToMqtt = "{043EA491-0325-4ADD-8FC2-A30C8EEB4D3F}";
 	const MqttToModul = "{7F7632D9-FA40-4F38-8DEA-C83CD4325A32}";
+	
+	const LinkTapId = "LinkTapId";
+	const UplinkTopic = "UplinkTopic";
+	const DownlinkTopic = "DownlinkTopic";
+	const MeasurementUnit = "MeasurementUnit";
 
 	const Battery = "Battery";
 	const GatewayId = "GatewayId";
@@ -38,14 +43,18 @@ class LinkTap extends IPSModule
 		//Never delete this line!
 		parent::Create();
 
-		$this->RegisterPropertyString('UplinkTopic', '');
+		$this->RegisterPropertyString(self::UplinkTopic, '');
 		//$this->RegisterPropertyString('UplinkReplyTopic', '');
-		$this->RegisterPropertyString('DownlinkTopic', '');
+		$this->RegisterPropertyString(self::DownlinkTopic, '');
 		//$this->RegisterPropertyString('DownlinkReplyTopic', '');
-		$this->RegisterPropertyString('LinkTapId', '');
-		$this->RegisterPropertyString('MeasurementUnit', 'Liter');
+		$this->RegisterPropertyString(self::LinkTapId, '');
+		$this->RegisterPropertyString(self::MeasurementUnit, 'Liter');
 
-		$this->RegisterVariables();	
+		$this->RegisterPropertyInteger('RequestInterval', 5);
+
+		$this->RegisterTimer('RequestTimer', 0, 'LT_RequestData($_IPS[\'TARGET\']);');
+
+		$this->RegisterVariables();		
 
 		$this->ConnectParent(self::MqttParent);
 	}
@@ -61,11 +70,11 @@ class LinkTap extends IPSModule
 		//Never delete this line!
 		parent::ApplyChanges();
 
-		if($this->ReadPropertyString('LinkTapId') == '' || 
-			$this->ReadPropertyString('UplinkTopic') == '' || 
+		if($this->ReadPropertyString(self::LinkTapId) == '' || 
+			$this->ReadPropertyString(self::UplinkTopic) == '' || 
 			//$this->ReadPropertyString('UplinkReplyTopic') == '' || 				 
 			//$this->ReadPropertyString('DownlinkReplyTopic') == '' || 
-			$this->ReadPropertyString('DownlinkTopic') == '') 
+			$this->ReadPropertyString(self::DownlinkTopic) == '') 
 		{
 			$this->SendDebug("LinkTapId", "LinkTapId oder Topics nicht gesetzt!", 0);
 			$this->SetStatus(104);
@@ -74,21 +83,25 @@ class LinkTap extends IPSModule
 
 		$this->ConnectParent(self::MqttParent);
 
-		$this->SendDebug('LinkTapId', $this->ReadPropertyString('LinkTapId'), 0);
-		$this->SendDebug('UplinkTopic', $this->ReadPropertyString('UplinkTopic'), 0);
+		$this->SendDebug(self::LinkTapId, $this->ReadPropertyString(self::LinkTapId), 0);
+		$this->SendDebug(self::UplinkTopic, $this->ReadPropertyString(self::UplinkTopic), 0);
 		//$this->SendDebug('UplinkReplyTopic', $this->ReadPropertyString('UplinkReplyTopic'), 0);
-		$this->SendDebug('DownlinkTopic', $this->ReadPropertyString('DownlinkTopic'), 0);
+		$this->SendDebug(self::DownlinkTopic, $this->ReadPropertyString(self::DownlinkTopic), 0);
 		//$this->SendDebug('DownlinkReplyTopic', $this->ReadPropertyString('DownlinkReplyTopic'), 0);
 		
-		$filterResult1 = preg_quote('"Topic":"' . $this->ReadPropertyString('UplinkTopic') . '/' . $this->ReadPropertyString('LinkTapId') . '"');
-		$filterResult2 = preg_quote('"Topic":"' . $this->ReadPropertyString('UplinkTopic') . '"');	
+		$filterResult1 = preg_quote('"Topic":"' . $this->ReadPropertyString(self::UplinkTopic) . '/' . $this->ReadPropertyString(self::LinkTapId) . '"');
+		$filterResult2 = preg_quote('"Topic":"' . $this->ReadPropertyString(self::UplinkTopic) . '"');	
 		$filter = '.*(' . $filterResult1 . '|' . $filterResult2 . ').*';
 		$this->SendDebug('ReceiveDataFilter', $filter, 0);
 		$this->SetReceiveDataFilter($filter);
 
 		if ($this->HasActiveParent() && IPS_GetKernelRunlevel() == KR_READY) {
 			//Initial doing
-		}	
+			$this->RequestData($_IPS['TARGET']);
+		}
+
+		$interval = $this->ReadPropertyInteger('RequestInterval') * 1000;
+		$this->SetTimerInterval('RequestTimer', $interval);
 		
 		$this->SetStatus(102);
 	}
@@ -110,11 +123,35 @@ class LinkTap extends IPSModule
 		}
 	}
 
+	public function RequestData($Ident, $Value)
+	{
+		if(empty($this->ReadPropertyString(self::UplinkTopic)) || 
+		   empty($this->ReadPropertyString(self::LinkTapId)) || 
+		   empty($this->ReadPropertyString(self::DownlinkTopic)))
+		{
+			$this->SendDebug('RequestData', 'UplinkTopic is not set!', 0);
+			return;
+		}
+
+		$this->SendDebug('RequestData', 'Send Request to LinkTap Gateway', 0);
+
+		$payload = [
+			'cmd' => 3,
+			'dev_id' => $this->ReadPropertyString(self::LinkTapId),
+			'gw_id' => $this->GetValue(self::GatewayId)
+		];
+
+		$dataJSON = $this->GetPackageForDownlink($payload);
+
+		$this->SendDebug('RequestData', 'Payload to LinkTap' . $dataJSON, 0);
+		$this->SendDataToParent($dataJSON);
+	}
+
 	function DismissAlert(bool $Value)
 	{
 		$this->SendDebug('DismissAlert', 'DismissAlert', 0);
 
-		if($this->GetValue(self::GatewayId) == '' || $this->ReadPropertyString('LinkTapId') == '')
+		if($this->GetValue(self::GatewayId) == '' || $this->ReadPropertyString(self::LinkTapId) == '')
 		{
 			$this->SendDebug('DismissAlert', 'GatewayId or LinkTapId not set!', 0);
 			return;
@@ -124,7 +161,7 @@ class LinkTap extends IPSModule
 
 		$payload = [
 			'cmd' => 11,
-			'dev_id' => $this->ReadPropertyString('LinkTapId'),
+			'dev_id' => $this->ReadPropertyString(self::LinkTapId),
 			'gw_id' => $this->GetValue(self::GatewayId),
 			'alert' => 0
 		];
@@ -142,7 +179,7 @@ class LinkTap extends IPSModule
 	{
 		$this->SendDebug('StartWateringImmediately', 'StartWateringImmediately', 0);
 
-		if($this->GetValue(self::GatewayId) == '' || $this->ReadPropertyString('LinkTapId') == '')
+		if($this->GetValue(self::GatewayId) == '' || $this->ReadPropertyString(self::LinkTapId) == '')
 		{
 			$this->SendDebug('StartWateringImmediately', 'GatewayId or LinkTapId not set!', 0);
 			return;
@@ -158,7 +195,7 @@ class LinkTap extends IPSModule
 
 		$payload = [
 			'cmd' => 6,
-			'dev_id' => $this->ReadPropertyString('LinkTapId'),
+			'dev_id' => $this->ReadPropertyString(self::LinkTapId),
 			'gw_id' => $this->GetValue(self::GatewayId),
 			'duration' => $Value
 		];
@@ -174,7 +211,7 @@ class LinkTap extends IPSModule
 	{		
 		$this->SendDebug('StopWatering', 'StopWatering', 0);
 
-		if($this->GetValue(self::GatewayId) == '' || $this->ReadPropertyString('LinkTapId') == '')
+		if($this->GetValue(self::GatewayId) == '' || $this->ReadPropertyString(self::LinkTapId) == '')
 		{
 			$this->SendDebug('StopWatering', 'GatewayId or LinkTapId not set!', 0);
 			return;
@@ -184,7 +221,7 @@ class LinkTap extends IPSModule
 
 		$payload = [
 			'cmd' => 7,
-			'dev_id' => $this->ReadPropertyString('LinkTapId'),
+			'dev_id' => $this->ReadPropertyString(self::LinkTapId),
 			'gw_id' => $this->GetValue(self::GatewayId)
 		];
 
@@ -204,7 +241,7 @@ class LinkTap extends IPSModule
 
 		$this->SendDebug('Payload', 'Answer Handshake start', 0);
 
-		if($this->GetValue(self::GatewayId) == '' || $this->ReadPropertyString('LinkTapId') == '')
+		if($this->GetValue(self::GatewayId) == '' || $this->ReadPropertyString(self::LinkTapId) == '')
 		{
 			$this->SendDebug('StartWateringImmediately', 'GatewayId or LinkTapId not set!', 0);
 			return;
@@ -239,7 +276,7 @@ class LinkTap extends IPSModule
 
 		$this->SendDebug('Payload', json_encode($payload), 0);
 
-		$desiredDevId = $this->ReadPropertyString('LinkTapId');
+		$desiredDevId = $this->ReadPropertyString(self::LinkTapId);
 		$devStats = $payload['dev_stat'];
 		$specificDevice = null;
 
@@ -337,11 +374,11 @@ class LinkTap extends IPSModule
 
 	public function ReceiveData($JSONString)
 	{		
-		if($this->ReadPropertyString('LinkTapId') == '' || 
-			$this->ReadPropertyString('UplinkTopic') == '' || 
+		if($this->ReadPropertyString(self::LinkTapId) == '' || 
+			$this->ReadPropertyString(self::UplinkTopic) == '' || 
 			//$this->ReadPropertyString('UplinkReplyTopic') == '' ||				 
 			//$this->ReadPropertyString('DownlinkReplyTopic') == '' ||
-			$this->ReadPropertyString('DownlinkTopic') == '') 
+			$this->ReadPropertyString(self::DownlinkTopic) == '') 
 		{
 			$this->SendDebug("LinkTapId", "LinkTapId oder Topics nicht gesetzt!", 0);
 			return;
@@ -397,7 +434,7 @@ class LinkTap extends IPSModule
 		$data['PacketType'] = 3;
 		$data['QualityOfService'] = 0;
 		$data['Retain'] = false;
-		$data['Topic'] = $this->ReadPropertyString('DownlinkTopic');
+		$data['Topic'] = $this->ReadPropertyString(self::DownlinkTopic);
 		$data['Payload'] = json_encode($payload, JSON_UNESCAPED_SLASHES);
 		$dataJSON = json_encode($data, JSON_UNESCAPED_SLASHES);
 
@@ -578,7 +615,7 @@ class LinkTap extends IPSModule
 
 		IPS_CreateVariableProfile('LINKTAP.VOLUME', VARIABLETYPE_FLOAT);
 		IPS_SetVariableProfileIcon('LINKTAP.VOLUME', 'Drops');
-		IPS_SetVariableProfileText('LINKTAP.VOLUME', '', ' ' . $this->ReadPropertyString('MeasurementUnit'));
+		IPS_SetVariableProfileText('LINKTAP.VOLUME', '', ' ' . $this->ReadPropertyString(self::MeasurementUnit));
 				
 		$this->RegisterVariableFloat(self::Volume, $this->Translate(self::Volume), 'LINKTAP.VOLUME', $Position1); //x
 		$this->RegisterVariableFloat(self::VolumeLimit, $this->Translate(self::VolumeLimit), 'LINKTAP.VOLUME', $Postion2); //x
@@ -591,7 +628,7 @@ class LinkTap extends IPSModule
 
 		IPS_CreateVariableProfile('LINKTAP.SPEED', VARIABLETYPE_FLOAT);
 		IPS_SetVariableProfileIcon('LINKTAP.SPEED', 'Drops');
-		IPS_SetVariableProfileText('LINKTAP.SPEED', '', ' ' . $this->ReadPropertyString('MeasurementUnit') . '/min');
+		IPS_SetVariableProfileText('LINKTAP.SPEED', '', ' ' . $this->ReadPropertyString(self::MeasurementUnit) . '/min');
 
 		$this->RegisterVariableFloat(self::Speed, $this->Translate(self::Speed), 'LINKTAP.SPEED', $Position); //x/min
 	}
