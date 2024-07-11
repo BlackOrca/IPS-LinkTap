@@ -86,10 +86,10 @@ class LinkTap extends IPSModule
 		$this->SendDebug(self::DownlinkReplyTopic, $this->ReadPropertyString(self::DownlinkReplyTopic), 0);
 		
 		$filterResult1 = preg_quote('"Topic":"' . $this->ReadPropertyString(self::UplinkTopic) . '/' . $this->ReadPropertyString(self::LinkTapId) . '"');
-		$filterResult2 = preg_quote('"Topic":"' . $this->ReadPropertyString(self::UplinkTopic) . '"');	
-		$filterResult3 = preg_quote('"Topic":"' . $this->ReadPropertyString(self::DownlinkReplyTopic) . '"');
+		//$filterResult2 = preg_quote('"Topic":"' . $this->ReadPropertyString(self::UplinkTopic) . '"');	
+		$filterResult2 = preg_quote('"Topic":"' . $this->ReadPropertyString(self::DownlinkReplyTopic) . '"');
 
-		$filter = '.*(' . $filterResult1 . '|' . $filterResult2 . '|' . $filterResult3 . ').*';
+		$filter = '.*(' . $filterResult1 . '|' . $filterResult2 . ').*';
 		$this->SendDebug('ReceiveDataFilter', $filter, 0);
 		$this->SetReceiveDataFilter($filter);
 
@@ -359,7 +359,8 @@ class LinkTap extends IPSModule
 			$this->SendDebug('Received Answer from LinkTap', $JSONString, 0);
 			$this->ProcessResult($payload);
 		}
-		else if($data['Topic'] == $this->ReadPropertyString(self::UplinkTopic))
+		else if($data['Topic'] == $this->ReadPropertyString(self::UplinkTopic) || 
+				$data['Topic'] == $this->ReadPropertyString(self::UplinkTopic) . '/' . $this->ReadPropertyString(self::LinkTapId))
 		{
 			$this->SendDebug('Received Data from LinkTap', $JSONString, 0);
 			$this->ProcessPayload($payload);	
