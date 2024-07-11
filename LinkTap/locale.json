@@ -1,8 +1,9 @@
 {
     "translations": {
         "de": {
-            "UplinkTopic": "Uplink Topic",
-            "DownlinkTopic": "Downlink Topic",
+            "Uplink Topic": "Uplink Topic",
+            "Uplink Reply Topic": "Uplink Antwort Topic",
+            "Downlink Topic": "Downlink Topic",
             "LinkTapId": "LinkTap Id",
             "Battery": "Batterie",
             "GatewayId": "Gateway Id",

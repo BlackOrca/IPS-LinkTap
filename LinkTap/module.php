@@ -9,6 +9,7 @@ class LinkTap extends IPSModule
 	
 	const LinkTapId = "LinkTapId";
 	const UplinkTopic = "UplinkTopic";
+	const UplinkReplyTopic = "UplinkReplyTopic";
 	const DownlinkTopic = "DownlinkTopic";
 	const MeasurementUnit = "MeasurementUnit";
 
@@ -44,7 +45,7 @@ class LinkTap extends IPSModule
 		parent::Create();
 
 		$this->RegisterPropertyString(self::UplinkTopic, '');
-		//$this->RegisterPropertyString('UplinkReplyTopic', '');
+		$this->RegisterPropertyString(self::UplinkReplyTopic, '');
 		$this->RegisterPropertyString(self::DownlinkTopic, '');
 		//$this->RegisterPropertyString('DownlinkReplyTopic', '');
 		$this->RegisterPropertyString(self::LinkTapId, '');
@@ -70,33 +71,26 @@ class LinkTap extends IPSModule
 		//Never delete this line!
 		parent::ApplyChanges();
 
-		if($this->ReadPropertyString(self::LinkTapId) == '' || 
-			$this->ReadPropertyString(self::UplinkTopic) == '' || 
-			//$this->ReadPropertyString('UplinkReplyTopic') == '' || 				 
-			//$this->ReadPropertyString('DownlinkReplyTopic') == '' || 
-			$this->ReadPropertyString(self::DownlinkTopic) == '') 
-		{
-			$this->SendDebug("LinkTapId", "LinkTapId oder Topics nicht gesetzt!", 0);
-			$this->SetStatus(104);
+		if($this->IsBasicSettingsAnyMissing()) 
 			return;
-		}
 
 		$this->ConnectParent(self::MqttParent);
 
 		$this->SendDebug(self::LinkTapId, $this->ReadPropertyString(self::LinkTapId), 0);
 		$this->SendDebug(self::UplinkTopic, $this->ReadPropertyString(self::UplinkTopic), 0);
-		//$this->SendDebug('UplinkReplyTopic', $this->ReadPropertyString('UplinkReplyTopic'), 0);
+		$this->SendDebug(self::UplinkReplyTopic, $this->ReadPropertyString(self::UplinkReplyTopic), 0);
 		$this->SendDebug(self::DownlinkTopic, $this->ReadPropertyString(self::DownlinkTopic), 0);
 		//$this->SendDebug('DownlinkReplyTopic', $this->ReadPropertyString('DownlinkReplyTopic'), 0);
 		
 		$filterResult1 = preg_quote('"Topic":"' . $this->ReadPropertyString(self::UplinkTopic) . '/' . $this->ReadPropertyString(self::LinkTapId) . '"');
 		$filterResult2 = preg_quote('"Topic":"' . $this->ReadPropertyString(self::UplinkTopic) . '"');	
-		$filter = '.*(' . $filterResult1 . '|' . $filterResult2 . ').*';
+		$filterResult3 = preg_quote('"Topic":"' . $this->ReadPropertyString(self::UplinkReplyTopic) . '"');
+
+		$filter = '.*(' . $filterResult1 . '|' . $filterResult2 . '|' . $filterResult3 . ').*';
 		$this->SendDebug('ReceiveDataFilter', $filter, 0);
 		$this->SetReceiveDataFilter($filter);
 
 		if ($this->HasActiveParent() && IPS_GetKernelRunlevel() == KR_READY) {
-			//Initial doing
 			$this->RequestData($_IPS['TARGET']);
 		}
 
@@ -125,15 +119,10 @@ class LinkTap extends IPSModule
 
 	public function RequestData()
 	{
-		if(empty($this->ReadPropertyString(self::UplinkTopic)) || 
-		   empty($this->ReadPropertyString(self::LinkTapId)) || 
-		   empty($this->ReadPropertyString(self::DownlinkTopic)))
-		{
-			$this->SendDebug('RequestData', 'UplinkTopic is not set!', 0);
-			return;
-		}
+		if($this->IsBasicSettingsAnyMissing())
+			return;		
 
-		$this->SendDebug('RequestData', 'Send Request to LinkTap Gateway', 0);
+		$this->SendDebug('RequestData', 'Send Status Request to LinkTap Gateway', 0);
 
 		$payload = [
 			'cmd' => 3,
@@ -143,19 +132,15 @@ class LinkTap extends IPSModule
 
 		$dataJSON = $this->GetPackageForDownlink($payload);
 
-		$this->SendDebug('RequestData', 'Payload to LinkTap' . $dataJSON, 0);
 		$this->SendDataToParent($dataJSON);
 	}
 
 	function DismissAlert(bool $Value)
 	{
-		$this->SendDebug('DismissAlert', 'DismissAlert', 0);
-
-		if($this->GetValue(self::GatewayId) == '' || $this->ReadPropertyString(self::LinkTapId) == '')
-		{
-			$this->SendDebug('DismissAlert', 'GatewayId or LinkTapId not set!', 0);
+		if($this->IsBasicSettingsAnyMissing())
 			return;
-		}
+
+		$this->SendDebug('DismissAlert', 'Dismiss Alert', 0);
 
 		$this->SetValue(self::DismissAlert, true);
 
@@ -168,8 +153,6 @@ class LinkTap extends IPSModule
 
 		$dataJSON = $this->GetPackageForDownlink($payload);
 
-		$this->SendDebug('DismissAlert', 'Payload to LinkTap ' . $dataJSON, 0);
-
 		$this->SendDataToParent($dataJSON);
 
 		$this->SetValue(self::DismissAlert, false);
@@ -177,15 +160,12 @@ class LinkTap extends IPSModule
 
 	function StartWateringImmediately(int $Value)
 	{
-		$this->SendDebug('StartWateringImmediately', 'StartWateringImmediately', 0);
-
-		if($this->GetValue(self::GatewayId) == '' || $this->ReadPropertyString(self::LinkTapId) == '')
-		{
-			$this->SendDebug('StartWateringImmediately', 'GatewayId or LinkTapId not set!', 0);
+		if($this->IsBasicSettingsAnyMissing())
 			return;
-		}
 
-		if($Value == 2)
+		$this->SendDebug('StartWateringImmediately', 'Start Watering Immediately', 0);
+
+		if($Value <= 2)
 		{
 			$this->SendDebug('StartWateringImmediately', 'Value is less then minimum of 3 seconds. Means in our case, we stop watering if watering is active.', 0);
 			$this->StopWatering(true);
@@ -202,20 +182,15 @@ class LinkTap extends IPSModule
 
 		$dataJSON = $this->GetPackageForDownlink($payload);
 
-		$this->SendDebug('StartWateringImmediately', 'Payload to LinkTap ' . $dataJSON, 0);
-
 		$this->SendDataToParent($dataJSON);
 	}
 
 	function StopWatering(bool $Value)
 	{		
-		$this->SendDebug('StopWatering', 'StopWatering', 0);
-
-		if($this->GetValue(self::GatewayId) == '' || $this->ReadPropertyString(self::LinkTapId) == '')
-		{
-			$this->SendDebug('StopWatering', 'GatewayId or LinkTapId not set!', 0);
+		if($this->IsBasicSettingsAnyMissing())
 			return;
-		}
+
+		$this->SendDebug('StopWatering', 'Stop Watering', 0);
 
 		$this->SetValue(self::StopWatering, true);
 
@@ -227,8 +202,6 @@ class LinkTap extends IPSModule
 
 		$dataJSON = $this->GetPackageForDownlink($payload);
 
-		$this->SendDebug('StopWatering', 'Payload to LinkTap ' . $dataJSON, 0);
-
 		$this->SendDataToParent($dataJSON);
 
 		$this->SetValue(self::StopWatering, false);
@@ -236,16 +209,13 @@ class LinkTap extends IPSModule
 	
 	function AnswerHandshake(array $payload)
 	{
+		if($this->IsBasicSettingsAnyMissing())
+			return;
+
 		if(!array_key_exists('ver', $payload) && !array_key_exists('end_dev', $payload))
 			return;
 
 		$this->SendDebug('Payload', 'Answer Handshake start', 0);
-
-		if($this->GetValue(self::GatewayId) == '' || $this->ReadPropertyString(self::LinkTapId) == '')
-		{
-			$this->SendDebug('StartWateringImmediately', 'GatewayId or LinkTapId not set!', 0);
-			return;
-		}
 
 		$payload = [
 			'cmd' => 0,
@@ -256,8 +226,6 @@ class LinkTap extends IPSModule
 		];
 
 		$dataJSON = $this->GetPackageForDownlink($payload);
-
-		$this->SendDebug('Answer Handshake', 'Payload to LinkTap ' . $dataJSON, 0);
 
 		$this->SendDataToParent($dataJSON);
 
@@ -374,15 +342,8 @@ class LinkTap extends IPSModule
 
 	public function ReceiveData($JSONString)
 	{		
-		if($this->ReadPropertyString(self::LinkTapId) == '' || 
-			$this->ReadPropertyString(self::UplinkTopic) == '' || 
-			//$this->ReadPropertyString('UplinkReplyTopic') == '' ||				 
-			//$this->ReadPropertyString('DownlinkReplyTopic') == '' ||
-			$this->ReadPropertyString(self::DownlinkTopic) == '') 
-		{
-			$this->SendDebug("LinkTapId", "LinkTapId oder Topics nicht gesetzt!", 0);
+		if($this->IsBasicSettingsAnyMissing())
 			return;
-		}
 
 		$this->SendDebug('Received Data from Parent', $JSONString, 0);
 
@@ -390,7 +351,16 @@ class LinkTap extends IPSModule
 
 		$payload = json_decode($data['Payload'], true);
 		
-		$this->ProcessPayload($payload);
+		if($data['Topic'] == $this->ReadPropertyString(self::UplinkReplyTopic))
+		{
+			$this->SendDebug('Received Answer from LinkTap', $JSONString, 0);
+			$this->ProcessResult($payload);
+		}
+		else if($data['Topic'] == $this->ReadPropertyString(self::UplinkTopic))
+		{
+			$this->SendDebug('Received Data from LinkTap', $JSONString, 0);
+			$this->ProcessPayload($payload);	
+		}		
 	}
 
 	function ProcessPayload(array $payload)
@@ -409,13 +379,13 @@ class LinkTap extends IPSModule
 				break;
 
 			case 6: //Start Watering Immediately
-				if($this->ProcessResult($payload['ret']))
-					$this->SetValue(self::WateringActive, true);				
+				// if($this->ProcessResult($payload['ret']))
+				$this->SetValue(self::WateringActive, true);				
 				break;
 
 			case 7: //Stop Watering
-				if($this->ProcessResult($payload['ret']))
-					$this->SetValue(self::WateringActive, false);				
+				// if($this->ProcessResult($payload['ret']))
+				$this->SetValue(self::WateringActive, false);				
 				break;
 
 			case 11: //Dismiss Alert
@@ -428,24 +398,11 @@ class LinkTap extends IPSModule
 		}		
 	}
 
-	function GetPackageForDownlink(array $payload) : string
-	{
-		$data['DataID'] = self::ModulToMqtt;
-		$data['PacketType'] = 3;
-		$data['QualityOfService'] = 0;
-		$data['Retain'] = false;
-		$data['Topic'] = $this->ReadPropertyString(self::DownlinkTopic);
-		$data['Payload'] = json_encode($payload, JSON_UNESCAPED_SLASHES);
-		$dataJSON = json_encode($data, JSON_UNESCAPED_SLASHES);
-
-		return $dataJSON;
-	}
-
-	function ProcessResult(int $value) : bool
+	function ProcessResult(int $payload) : bool
 	{
 		$this->SendDebug('Result Processor', 'Result ID from Gateway ' . $value, 0);
 		$result = false;
-		switch($value)
+		switch($payload['ret'])
 		{
 			case 0:
 				$this->SendDebug('Result Processor', 'Success from Gateway', 0);
@@ -496,6 +453,49 @@ class LinkTap extends IPSModule
 				$result = false;
 				break;
 		}
+		return $result;
+	}
+
+
+	function GetPackageForDownlink(array $payload) : string
+	{
+		$data['DataID'] = self::ModulToMqtt;
+		$data['PacketType'] = 3;
+		$data['QualityOfService'] = 0;
+		$data['Retain'] = false;
+		$data['Topic'] = $this->ReadPropertyString(self::DownlinkTopic);
+		$data['Payload'] = json_encode($payload, JSON_UNESCAPED_SLASHES);
+		$dataJSON = json_encode($data, JSON_UNESCAPED_SLASHES);
+
+		$this->SendDebug('GetPackageForDownlink', 'Data to send to LinkTap ' . $dataJSON, 0);
+		return $dataJSON;
+	}
+
+	
+	function IsBasicSettingsAnyMissing() : bool
+	{
+		$result = false;
+		if(empty($this->ReadPropertyString(self::LinkTapId)))
+		{
+			$this->SendDebug("LinkTapId", "LinkTapId is not set!", 0);
+			$result = true;
+		}
+		if(empty($this->ReadPropertyString(self::UplinkTopic)))
+		{
+			$this->SendDebug("UplinkTopic", "UplinkTopic is not set!", 0);
+			$result = true;
+		}
+		if(empty($this->ReadPropertyString(self::UplinkReplyTopic)))
+		{
+			$this->SendDebug("UplinkReplyTopic", "UplinkReplyTopic is not set!", 0);
+			$result = true;
+		}
+		if(empty($this->ReadPropertyString(self::DownlinkTopic)))
+		{
+			$this->SendDebug("DownlinkTopic", "DownlinkTopic is not set!", 0);
+			$result = true;
+		}
+
 		return $result;
 	}
 

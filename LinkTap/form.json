@@ -15,6 +15,13 @@
         },
         {
             "type": "ValidationTextBox",
+            "name": "UplinkReplyTopic",
+            "caption": "Uplink Reply Topic",
+            "value": "linktap",
+            "required": true
+        },
+        {
+            "type": "ValidationTextBox",
             "name": "DownlinkTopic",
             "caption": "Downlink Topic",
             "required": true
