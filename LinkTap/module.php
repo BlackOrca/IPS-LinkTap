@@ -123,7 +123,7 @@ class LinkTap extends IPSModule
 		}
 	}
 
-	public function RequestData($Ident, $Value)
+	public function RequestData()
 	{
 		if(empty($this->ReadPropertyString(self::UplinkTopic)) || 
 		   empty($this->ReadPropertyString(self::LinkTapId)) || 
