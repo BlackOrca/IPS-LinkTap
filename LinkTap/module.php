@@ -384,7 +384,7 @@ class LinkTap extends IPSModule
 			return;
 		}
 
-		$this->SendDebug('ReceiveData', $JSONString, 0);
+		$this->SendDebug('Received Data from Parent', $JSONString, 0);
 
 		$data = json_decode($JSONString, true);
 
