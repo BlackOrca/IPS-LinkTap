@@ -380,16 +380,16 @@ class LinkTap extends IPSModule
 
 			case 6: //Start Watering Immediately
 				// if($this->ProcessResult($payload['ret']))
-				$this->SetValue(self::WateringActive, true);				
+				//$this->SetValue(self::WateringActive, true);				
 				break;
 
 			case 7: //Stop Watering
 				// if($this->ProcessResult($payload['ret']))
-				$this->SetValue(self::WateringActive, false);				
+				//$this->SetValue(self::WateringActive, false);				
 				break;
 
 			case 11: //Dismiss Alert
-				$this->ProcessResult($payload['ret']);
+				//$this->ProcessResult($payload['ret']);
 				break;
 
 			default:
