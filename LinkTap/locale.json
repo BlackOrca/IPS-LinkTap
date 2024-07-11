@@ -2,8 +2,9 @@
     "translations": {
         "de": {
             "Uplink Topic": "Uplink Topic",
-            "Uplink Reply Topic": "Uplink Antwort Topic",
+            "Uplink Reply Topic": "Uplink reply Topic",
             "Downlink Topic": "Downlink Topic",
+            "Downlink Reply Topic": "Downlink reply Topic",
             "LinkTapId": "LinkTap Id",
             "Battery": "Batterie",
             "GatewayId": "Gateway Id",
@@ -73,7 +74,23 @@
             "MeasurementUnit": "Messungseinheit",
             "Liter": "Liter",
             "Galon": "Galon",
-            "Request interval in seconds": "Anforderungsintervall in seconds"
+            "Request interval in seconds": "Anforderungsintervall in seconds",
+            "Handshake": "Handshake",
+            "Add End Device": "Endgerät hinzufügen",
+            "Remove End Device": "Endgerät entfernen",
+            "Status Update": "Statusaktualisierung",
+            "Add Watering plan": "Bewässerungsplan hinzufügen",
+            "Remove Watering plan": "Bewässerungsplan entfernen",
+            "Start Watering Immediately": "Sofort bewässern",
+            "Stop Watering Immediately": "Sofort bewässern stoppen",
+            "Fetch/Push rainfall data": "Niederschlagsdaten abrufen/pushen",
+            "Watering skipped notification": "Bewässerung übersprungen Benachrichtigung",
+            "Enable/Disable Alert": "Alarm aktivieren/deaktivieren",
+            "Dismiss Alert": "Alarm bestätigen",
+            "Setup lockout state On/Off button": "Sperren einrichten Ein/Aus-Taste",
+            "Gatway send his time": "Gateway sendet seine Zeit",
+            "Fetch Gateway time": "Gateway-Zeit abrufen",
+            "Test wireless performance": "Testen der drahtlosen Leistung"
         }
     }
 }

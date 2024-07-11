@@ -8,9 +8,12 @@ class LinkTap extends IPSModule
 	const MqttToModul = "{7F7632D9-FA40-4F38-8DEA-C83CD4325A32}";
 	
 	const LinkTapId = "LinkTapId";
+
 	const UplinkTopic = "UplinkTopic";
 	const UplinkReplyTopic = "UplinkReplyTopic";
 	const DownlinkTopic = "DownlinkTopic";
+	const DownlinkReplyTopic = "DownlinkReplyTopic";
+
 	const MeasurementUnit = "MeasurementUnit";
 
 	const Battery = "Battery";
@@ -47,7 +50,7 @@ class LinkTap extends IPSModule
 		$this->RegisterPropertyString(self::UplinkTopic, '');
 		$this->RegisterPropertyString(self::UplinkReplyTopic, '');
 		$this->RegisterPropertyString(self::DownlinkTopic, '');
-		//$this->RegisterPropertyString('DownlinkReplyTopic', '');
+		$this->RegisterPropertyString(self::DownlinkReplyTopic, '');
 		$this->RegisterPropertyString(self::LinkTapId, '');
 		$this->RegisterPropertyString(self::MeasurementUnit, 'Liter');
 
@@ -80,11 +83,11 @@ class LinkTap extends IPSModule
 		$this->SendDebug(self::UplinkTopic, $this->ReadPropertyString(self::UplinkTopic), 0);
 		$this->SendDebug(self::UplinkReplyTopic, $this->ReadPropertyString(self::UplinkReplyTopic), 0);
 		$this->SendDebug(self::DownlinkTopic, $this->ReadPropertyString(self::DownlinkTopic), 0);
-		//$this->SendDebug('DownlinkReplyTopic', $this->ReadPropertyString('DownlinkReplyTopic'), 0);
+		$this->SendDebug(self::DownlinkReplyTopic, $this->ReadPropertyString(self::DownlinkReplyTopic), 0);
 		
 		$filterResult1 = preg_quote('"Topic":"' . $this->ReadPropertyString(self::UplinkTopic) . '/' . $this->ReadPropertyString(self::LinkTapId) . '"');
 		$filterResult2 = preg_quote('"Topic":"' . $this->ReadPropertyString(self::UplinkTopic) . '"');	
-		$filterResult3 = preg_quote('"Topic":"' . $this->ReadPropertyString(self::UplinkReplyTopic) . '"');
+		$filterResult3 = preg_quote('"Topic":"' . $this->ReadPropertyString(self::DownlinkReplyTopic) . '"');
 
 		$filter = '.*(' . $filterResult1 . '|' . $filterResult2 . '|' . $filterResult3 . ').*';
 		$this->SendDebug('ReceiveDataFilter', $filter, 0);
@@ -351,7 +354,7 @@ class LinkTap extends IPSModule
 
 		$payload = json_decode($data['Payload'], true);
 		
-		if($data['Topic'] == $this->ReadPropertyString(self::UplinkReplyTopic))
+		if($data['Topic'] == $this->ReadPropertyString(self::DownlinkReplyTopic))
 		{
 			$this->SendDebug('Received Answer from LinkTap', $JSONString, 0);
 			$this->ProcessResult($payload);
@@ -398,62 +401,105 @@ class LinkTap extends IPSModule
 		}		
 	}
 
-	function ProcessResult(int $payload) : bool
+	function ProcessResult(int $payload)
 	{
-		$this->SendDebug('Result Processor', 'Result ID from Gateway ' . $value, 0);
-		$result = false;
+		if($payload['gw_id'] != $this->GetValue(self::GatewayId))
+		{
+			return;
+		}
+
+		if(array_key_exists('dev_id', $payload) && $payload['dev_id'] != $this->ReadPropertyString(self::LinkTapId))
+		{
+			return;
+		}
+
 		switch($payload['ret'])
 		{
 			case 0:
 				$this->SendDebug('Result Processor', 'Success from Gateway', 0);
-				$this->SetValue(self::LastCommandResponse, $this->Translate('Success'));
-				$result = true;
+				$this->SetValue(self::LastCommandResponse, GetAnswerToString($this->Translate('Success'), $paylod['cmd']));
 				break;
 			case 1:
 				$this->SendDebug('Result Processor', 'Error from Gateway: Message format error (1)', 0);
-				$this->SetValue(self::LastCommandResponse, $this->Translate('Error from Gateway: Message format error (1)'));
-				$result = false;
+				$this->SetValue(self::LastCommandResponse, GetAnswerToString($this->Translate('Error from Gateway: Message format error (1)'), $paylod['cmd']));
 				break;
 			case 2:
 				$this->SendDebug('Result Processor', 'Error from Gateway: CMD message not supported (2)', 0);
-				$this->SetValue(self::LastCommandResponse, $this->Translate('Error from Gateway: CMD message not supported (2)'));
-				$result = false;
+				$this->SetValue(self::LastCommandResponse, GetAnswerToString($this->Translate('Error from Gateway: CMD message not supported (2)'), $paylod['cmd']));
 				break;
 			case 3:
 				$this->SendDebug('Result Processor', 'Error from Gateway: Gateway ID not matched (3)', 0);
-				$this->SetValue(self::LastCommandResponse, $this->Translate('Error from Gateway: Gateway ID not matched (3)'));
-				$result = false;
+				$this->SetValue(self::LastCommandResponse, GetAnswerToString($this->Translate('Error from Gateway: Gateway ID not matched (3)'), $paylod['cmd']));
 				break;
 			case 4:
 				$this->SendDebug('Result Processor', 'Error from Gateway: End device ID error (4)', 0);
-				$this->SetValue(self::LastCommandResponse, $this->Translate('Error from Gateway: End device ID error (4)'));
-				$result = false;
+				$this->SetValue(self::LastCommandResponse, GetAnswerToString($this->Translate('Error from Gateway: End device ID error (4)'), $paylod['cmd']));
 				break;
 			case 5:
 				$this->SendDebug('Result Processor', 'Error from Gateway: End device ID not found (5)', 0);
-				$this->SetValue(self::LastCommandResponse, $this->Translate('Error from Gateway: End device ID not found (5)'));
-				$result = false;
+				$this->SetValue(self::LastCommandResponse, GetAnswerToString($this->Translate('Error from Gateway: End device ID not found (5)'), $paylod['cmd']));
 				break;
 			case 6:
 				$this->SendDebug('Result Processor', 'Error from Gateway: Gateway internal error (6)', 0);
-				$this->SetValue(self::LastCommandResponse, $this->Translate('Error from Gateway: Gateway internal error (6)'));
-				$result = false;
+				$this->SetValue(self::LastCommandResponse, GetAnswerToString($this->Translate('Error from Gateway: Gateway internal error (6)'), $paylod['cmd']));
 				break;
 			case 7:
 				$this->SendDebug('Result Processor', 'Error from Gateway: Conflict with watering plan (7)', 0);
-				$this->SetValue(self::LastCommandResponse, $this->Translate('Error from Gateway: Conflict with watering plan (7)'));
-				$result = false;
+				$this->SetValue(self::LastCommandResponse, GetAnswerToString($this->Translate('Error from Gateway: Conflict with watering plan (7)'), $paylod['cmd']));
 				break;
 			case 8:
 				$this->SendDebug('Result Processor', 'Error from Gateway: Gateway busy (8)', 0);
-				$this->SetValue(self::LastCommandResponse, $this->Translate('Error from Gateway: Gateway busy (8)'));
-				$result = false;
+				$this->SetValue(self::LastCommandResponse, GetAnswerToString($this->Translate('Error from Gateway: Gateway busy (8)'), $paylod['cmd']));
 				break;
 			default:
-				$result = false;
 				break;
 		}
-		return $result;
+	}
+
+	function GetAnswerToString($errorMessage, $cmd)
+	{
+		return $this->GetCommand($cmd) . ' -> ' $errorMessage;
+	}
+
+	function GetCommand($cmd)
+	{
+		switch($cmd)
+		{
+			case 0:
+				return $this->Translate('Handshake');
+			case 1:
+				return $this->Translate('Add End Device');
+			case 2:
+				return $this->Translate('Remove End Device');
+			case 3:
+				return $this->Translate('Status Update');
+			case 4:
+				return $this->Translate('Add Watering plan');
+			case 5:
+				return $this->Translate('Remove Watering plan');
+			case 6:
+				return $this->Translate('Start Watering Immediately');
+			case 7:
+				return $this->Translate('Stop Watering Immediately');
+			case 8:
+				return $this->Translate('Fetch/Push rainfall data');
+			case 9:
+				return $this->Translate('Watering skipped notification');
+			case 10:
+				return $this->Translate('Enable/Disable Alert');			
+			case 11:
+				return $this->Translate('Dismiss Alert');
+			case 12:
+				return $this->Translate('Setup lockout state On/Off button');
+			case 13:
+				return $this->Translate('Gatway send his time');
+			case 14:
+				return $this->Translate('Fetch Gateway time');
+			case 15:
+				return $this->Translate('Test wireless performance');
+			default:
+				return 'Unknown';
+		}
 	}
 
 
@@ -470,7 +516,6 @@ class LinkTap extends IPSModule
 		$this->SendDebug('GetPackageForDownlink', 'Data to send to LinkTap ' . $dataJSON, 0);
 		return $dataJSON;
 	}
-
 	
 	function IsBasicSettingsAnyMissing() : bool
 	{
@@ -493,6 +538,11 @@ class LinkTap extends IPSModule
 		if(empty($this->ReadPropertyString(self::DownlinkTopic)))
 		{
 			$this->SendDebug("DownlinkTopic", "DownlinkTopic is not set!", 0);
+			$result = true;
+		}
+		if(empty($this->ReadPropertyString(self::DownlinkReplyTopic)))
+		{
+			$this->SendDebug("DownlinkReplyTopic", "DownlinkReplyTopic is not set!", 0);
 			$result = true;
 		}
 

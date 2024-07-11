@@ -26,6 +26,12 @@
             "caption": "Downlink Topic",
             "required": true
         },
+        {
+            "type": "ValidationTextBox",
+            "name": "DownlinkReplyTopic",
+            "caption": "Downlink Reply Topic",
+            "required": true
+        },
         { 
             "type": "Select", 
             "name": "MeasurementUnit", 
