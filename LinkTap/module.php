@@ -401,7 +401,7 @@ class LinkTap extends IPSModule
 		}		
 	}
 
-	function ProcessResult(int $payload)
+	function ProcessResult(array $payload)
 	{
 		if($payload['gw_id'] != $this->GetValue(self::GatewayId))
 		{
