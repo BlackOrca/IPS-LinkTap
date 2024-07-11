@@ -45,38 +45,7 @@ class LinkTap extends IPSModule
 		$this->RegisterPropertyString('LinkTapId', '');
 		$this->RegisterPropertyString('MeasurementUnit', 'Liter');
 
-		$this->RegisterVariableBoolean(self::StopWatering, $this->Translate(self::StopWatering), '~Switch', 10);
-		$this->EnableAction(self::StopWatering);
-
-		$this->RegisterWateringModes(10);
-		$this->RegisterStartWateringImmediately(20);				
-
-		$this->RegisterVariableString(self::TotalDuration, $this->Translate(self::TotalDuration), '', 100); //seconds
-		$this->RegisterVariableString(self::RemainDuration, $this->Translate(self::RemainDuration), '', 110); //seconds
-		
-		$this->RegisterWaterSpeed(120);
-		$this->RegisterVolumes(130, 140);
-
-		$this->RegisterVariableInteger(self::Battery, $this->Translate(self::Battery), '~Battery.100', 50);
-		$this->RegisterVariableInteger(self::SignalStrength, $this->Translate(self::SignalStrength), '~Intensity.100', 60);
-
-		$this->RegisterVariableBoolean(self::WateringActive, $this->Translate(self::WateringActive), '~Switch', 200);
-		$this->RegisterChildLock(210);
-		$this->RegisterVariableBoolean(self::IsFlowMeasurementPlugedIn, $this->Translate(self::IsFlowMeasurementPlugedIn), '~Switch', 220);		
-		$this->RegisterVariableBoolean(self::ManualMode, $this->Translate(self::ManualMode), '~Switch', 230);
-		$this->RegisterVariableBoolean(self::IsRfLinked, $this->Translate(self::IsRfLinked), '~Switch', 240);	
-		$this->RegisterVariableBoolean(self::EcoFinal, $this->Translate(self::EcoFinal), '~Switch', 250);
-
-		$this->RegisterVariableBoolean(self::DismissAlert, $this->Translate(self::DismissAlert), '~Switch', 300);
-		$this->EnableAction(self::DismissAlert);
-		$this->RegisterVariableBoolean(self::FallAlert, $this->Translate(self::FallAlert), '~Alert', 310);
-		$this->RegisterVariableBoolean(self::ValveShutdownFailureAlert, $this->Translate(self::ValveShutdownFailureAlert), '~Alert', 320);
-		$this->RegisterVariableBoolean(self::WaterCutOffAlert, $this->Translate(self::WaterCutOffAlert), '~Alert', 330);
-		$this->RegisterVariableBoolean(self::HighFlowAlert, $this->Translate(self::HighFlowAlert), '~Alert', 340);
-		$this->RegisterVariableBoolean(self::LowFlowAlert, $this->Translate(self::LowFlowAlert), '~Alert', 350);
-
-		$this->RegisterVariableString(self::GatewayId, $this->Translate(self::GatewayId), '', 1000);
-		$this->RegisterVariableString(self::LastCommandResponse, $this->Translate(self::LastCommandResponse), '', 1001);
+		$this->RegisterVariables();	
 
 		$this->ConnectParent(self::MqttParent);
 	}
@@ -490,6 +459,42 @@ class LinkTap extends IPSModule
 				break;
 		}
 		return $result;
+	}
+
+	function RegisterVariables()
+	{
+		$this->RegisterVariableBoolean(self::StopWatering, $this->Translate(self::StopWatering), '~Switch', 10);
+		$this->EnableAction(self::StopWatering);
+
+		$this->RegisterWateringModes(10);
+		$this->RegisterStartWateringImmediately(20);				
+
+		$this->RegisterVariableString(self::TotalDuration, $this->Translate(self::TotalDuration), '', 100); //seconds
+		$this->RegisterVariableString(self::RemainDuration, $this->Translate(self::RemainDuration), '', 110); //seconds
+		
+		$this->RegisterWaterSpeed(120);
+		$this->RegisterVolumes(130, 140);
+
+		$this->RegisterVariableInteger(self::Battery, $this->Translate(self::Battery), '~Battery.100', 50);
+		$this->RegisterVariableInteger(self::SignalStrength, $this->Translate(self::SignalStrength), '~Intensity.100', 60);
+
+		$this->RegisterVariableBoolean(self::WateringActive, $this->Translate(self::WateringActive), '~Switch', 200);
+		$this->RegisterChildLock(210);
+		$this->RegisterVariableBoolean(self::IsFlowMeasurementPlugedIn, $this->Translate(self::IsFlowMeasurementPlugedIn), '~Switch', 220);		
+		$this->RegisterVariableBoolean(self::ManualMode, $this->Translate(self::ManualMode), '~Switch', 230);
+		$this->RegisterVariableBoolean(self::IsRfLinked, $this->Translate(self::IsRfLinked), '~Switch', 240);	
+		$this->RegisterVariableBoolean(self::EcoFinal, $this->Translate(self::EcoFinal), '~Switch', 250);
+
+		$this->RegisterVariableBoolean(self::DismissAlert, $this->Translate(self::DismissAlert), '~Switch', 300);
+		$this->EnableAction(self::DismissAlert);
+		$this->RegisterVariableBoolean(self::FallAlert, $this->Translate(self::FallAlert), '~Alert', 310);
+		$this->RegisterVariableBoolean(self::ValveShutdownFailureAlert, $this->Translate(self::ValveShutdownFailureAlert), '~Alert', 320);
+		$this->RegisterVariableBoolean(self::WaterCutOffAlert, $this->Translate(self::WaterCutOffAlert), '~Alert', 330);
+		$this->RegisterVariableBoolean(self::HighFlowAlert, $this->Translate(self::HighFlowAlert), '~Alert', 340);
+		$this->RegisterVariableBoolean(self::LowFlowAlert, $this->Translate(self::LowFlowAlert), '~Alert', 350);
+
+		$this->RegisterVariableString(self::GatewayId, $this->Translate(self::GatewayId), '', 1000);
+		$this->RegisterVariableString(self::LastCommandResponse, $this->Translate(self::LastCommandResponse), '', 1001);
 	}
 
 	function RegisterStartWateringImmediately(int $Position)
