@@ -417,39 +417,39 @@ class LinkTap extends IPSModule
 		{
 			case 0:
 				$this->SendDebug('Result Processor', 'Success from Gateway', 0);
-				$this->SetValue(self::LastCommandResponse, GetAnswerToString('Success', $payload['cmd']));
+				$this->SetValue(self::LastCommandResponse, $this->GetAnswerToString('Success', $payload['cmd']));
 				break;
 			case 1:
 				$this->SendDebug('Result Processor', 'Error from Gateway: Message format error (1)', 0);
-				$this->SetValue(self::LastCommandResponse, GetAnswerToString('Error from Gateway: Message format error (1)', $payload['cmd']));
+				$this->SetValue(self::LastCommandResponse, $this->GetAnswerToString('Error from Gateway: Message format error (1)', $payload['cmd']));
 				break;
 			case 2:
 				$this->SendDebug('Result Processor', 'Error from Gateway: CMD message not supported (2)', 0);
-				$this->SetValue(self::LastCommandResponse, GetAnswerToString('Error from Gateway: CMD message not supported (2)', $payload['cmd']));
+				$this->SetValue(self::LastCommandResponse, $this->GetAnswerToString('Error from Gateway: CMD message not supported (2)', $payload['cmd']));
 				break;
 			case 3:
 				$this->SendDebug('Result Processor', 'Error from Gateway: Gateway ID not matched (3)', 0);
-				$this->SetValue(self::LastCommandResponse, GetAnswerToString('Error from Gateway: Gateway ID not matched (3)', $payload['cmd']));
+				$this->SetValue(self::LastCommandResponse, $this->GetAnswerToString('Error from Gateway: Gateway ID not matched (3)', $payload['cmd']));
 				break;
 			case 4:
 				$this->SendDebug('Result Processor', 'Error from Gateway: End device ID error (4)', 0);
-				$this->SetValue(self::LastCommandResponse, GetAnswerToString('Error from Gateway: End device ID error (4)', $payload['cmd']));
+				$this->SetValue(self::LastCommandResponse, $this->GetAnswerToString('Error from Gateway: End device ID error (4)', $payload['cmd']));
 				break;
 			case 5:
 				$this->SendDebug('Result Processor', 'Error from Gateway: End device ID not found (5)', 0);
-				$this->SetValue(self::LastCommandResponse, GetAnswerToString('Error from Gateway: End device ID not found (5)', $payload['cmd']));
+				$this->SetValue(self::LastCommandResponse, $this->GetAnswerToString('Error from Gateway: End device ID not found (5)', $payload['cmd']));
 				break;
 			case 6:
 				$this->SendDebug('Result Processor', 'Error from Gateway: Gateway internal error (6)', 0);
-				$this->SetValue(self::LastCommandResponse, GetAnswerToString('Error from Gateway: Gateway internal error (6)', $payload['cmd']));
+				$this->SetValue(self::LastCommandResponse, $this->GetAnswerToString('Error from Gateway: Gateway internal error (6)', $payload['cmd']));
 				break;
 			case 7:
 				$this->SendDebug('Result Processor', 'Error from Gateway: Conflict with watering plan (7)', 0);
-				$this->SetValue(self::LastCommandResponse, GetAnswerToString('Error from Gateway: Conflict with watering plan (7)', $payload['cmd']));
+				$this->SetValue(self::LastCommandResponse, $this->GetAnswerToString('Error from Gateway: Conflict with watering plan (7)', $payload['cmd']));
 				break;
 			case 8:
 				$this->SendDebug('Result Processor', 'Error from Gateway: Gateway busy (8)', 0);
-				$this->SetValue(self::LastCommandResponse, GetAnswerToString('Error from Gateway: Gateway busy (8)', $payload['cmd']));
+				$this->SetValue(self::LastCommandResponse, $this->GetAnswerToString('Error from Gateway: Gateway busy (8)', $payload['cmd']));
 				break;
 			default:
 				break;
