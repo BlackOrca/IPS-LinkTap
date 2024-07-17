@@ -529,10 +529,10 @@ class LinkTap extends IPSModule
 
 	function DataIsNotForUs(array $payload) : bool
 	{
-		if($payload['gw_id'] != $this->GetValue(self::GatewayId))
-		{
-			return true;
-		}
+		// if($payload['gw_id'] != $this->GetValue(self::GatewayId))
+		// {
+		// 	return true;
+		// }
 
 		if(array_key_exists('dev_id', $payload) && $payload['dev_id'] != $this->ReadPropertyString(self::LinkTapId))
 		{
