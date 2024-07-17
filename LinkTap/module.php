@@ -207,15 +207,8 @@ class LinkTap extends IPSModule
 
 	function ProcessResult(array $payload)
 	{
-		if($payload['gw_id'] != $this->GetValue(self::GatewayId))
-		{
+		if($this->DataIsNotForUs($payload))
 			return;
-		}
-
-		if(array_key_exists('dev_id', $payload) && $payload['dev_id'] != $this->ReadPropertyString(self::LinkTapId))
-		{
-			return;
-		}
 
 		switch($payload['ret'])
 		{
