@@ -90,8 +90,9 @@ class LinkTap extends IPSModule
 		
 		$filterResult1 = preg_quote('"Topic":"' . $this->ReadPropertyString(self::UplinkTopic) . '/' . $this->ReadPropertyString(self::LinkTapId) . '"');
 		$filterResult2 = preg_quote('"Topic":"' . $this->ReadPropertyString(self::DownlinkReplyTopic) . '"');
+		$filterResult3 = preg_quote('"Topic":"' . $this->ReadPropertyString(self::UplinkTopic) . '"');
 
-		$filter = '.*(' . $filterResult1 . '|' . $filterResult2 . ').*';
+		$filter = '.*(' . $filterResult1 . '|' . $filterResult2 . '|' . $filterResult3 . ').*';
 		$this->SendDebug('ReceiveDataFilter', $filter, 0);
 		$this->SetReceiveDataFilter($filter);
 
@@ -115,6 +116,11 @@ class LinkTap extends IPSModule
 		$data = json_decode($JSONString, true);
 
 		$payload = json_decode($data['Payload'], true);
+
+		if($this->DataIsNotForUs($payload))
+		{
+			return;
+		}
 		
 		if($data['Topic'] == $this->ReadPropertyString(self::DownlinkReplyTopic))
 		{
@@ -518,6 +524,21 @@ class LinkTap extends IPSModule
 
 		$this->SendDebug('GetPackageForDownlink', 'Data to send to LinkTap ' . $dataJSON, 0);
 		return $dataJSON;
+	}
+
+	function DataIsNotForUs(array $payload) : bool
+	{
+		if($payload['gw_id'] != $this->GetValue(self::GatewayId))
+		{
+			return true;
+		}
+
+		if(array_key_exists('dev_id', $payload) && $payload['dev_id'] != $this->ReadPropertyString(self::LinkTapId))
+		{
+			return true;
+		}
+
+		return false;
 	}
 	
 	function IsBasicSettingsAnyMissing() : bool
