@@ -156,7 +156,13 @@ class LinkTap extends IPSModule
 	public function RequestStatus()
 	{
 		if($this->IsBasicSettingsAnyMissing())
-			return;		
+			return;
+
+		if(empty($this->GetValue(self::GatewayId)))
+		{
+			$this->SendDebug('RequestStatus', 'GatewayId is empty. RequestStatus is not possible. Wait for the first Status Message from Gateway.', 0);
+			return;
+		}
 
 		$this->SendDebug('RequestStatus', 'Send Status Request to LinkTap Gateway', 0);
 
@@ -207,9 +213,6 @@ class LinkTap extends IPSModule
 
 	function ProcessResult(array $payload)
 	{
-		if($this->DataIsNotForUs($payload))
-			return;
-
 		switch($payload['ret'])
 		{
 			case 0:
